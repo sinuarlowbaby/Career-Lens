@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Career Lens - Login</title>
+    <title>Career Lens - Sign Up</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -30,17 +30,19 @@
             background-image: url('./assets/bg.png');
             background-size: cover;
             background-position: center;
+            background-attachment: fixed;
             background-repeat: no-repeat;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-x: hidden;
+            padding: 40px 0;
         }
 
         /* Ambient glowing orbs */
         .orb {
-            position: absolute;
+            position: fixed;
             width: 300px;
             height: 300px;
             border-radius: 50%;
@@ -71,7 +73,7 @@
             position: relative;
             z-index: 10;
             width: 100%;
-            max-width: 420px;
+            max-width: 480px;
             padding: 40px;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -192,24 +194,14 @@
         input:focus + svg, input:not(:placeholder-shown) + svg {
             stroke: var(--primary-light);
         }
-
-        .forgot-password {
+        
+        .name-row {
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 24px;
+            gap: 16px;
         }
-
-        .forgot-password a {
-            color: var(--primary-light);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .forgot-password a:hover {
-            color: var(--primary);
-            text-decoration: underline;
+        
+        .name-row .input-group {
+            flex: 1;
         }
 
         button.submit-btn {
@@ -225,6 +217,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            margin-top: 10px;
         }
 
         button.submit-btn::before {
@@ -282,11 +275,34 @@
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
             </div>
-            <h1>Welcome Back</h1>
-            <p class="subtitle">Sign in to continue to Career Lens</p>
+            <h1>Create Account</h1>
+            <p class="subtitle">Join Career Lens to accelerate your journey</p>
         </div>
 
-        <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Login simulated!');">
+        <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Registration simulated!');">
+            <div class="name-row">
+                <div class="input-group">
+                    <label for="fname">First Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="fname" placeholder="Jane" required>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="lname">Last Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="lname" placeholder="Doe" required>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
             <div class="input-group">
                 <label for="email">Email Address</label>
                 <div class="input-wrapper">
@@ -309,15 +325,11 @@
                 </div>
             </div>
 
-            <div class="forgot-password">
-                <a href="#">Forgot Password?</a>
-            </div>
-
-            <button type="submit" class="submit-btn">Sign In</button>
+            <button type="submit" class="submit-btn">Sign Up</button>
         </form>
 
         <div class="signup-link">
-            Don't have an account? <a href="register.html">Create Account</a>
+            Already have an account? <a href="UI.html">Sign In</a>
         </div>
     </div>
 
