@@ -1,0 +1,27 @@
+services:
+  # 1. Your Vector Database
+  vector-db:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: always
+
+  # 2. Your FastAPI Backend
+  career-lens:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - vector-db
+    environment:
+      - QDRANT_URL=http://vector-db:6333
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    restart: always
+    env_file:
+      - .env
+
+
+volumes:
+  qdrant_data:
