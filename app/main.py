@@ -10,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.routes.api.routes import router
 from app.routes.api.upload import router as upload_router
 from app.routes.api.auth import router as auth_router
+from app.routes.api.ai import router as ai_router
 import dotenv
 import os
 
@@ -45,6 +46,7 @@ app.add_middleware(
 app.include_router(router)
 app.include_router(upload_router)
 app.include_router(auth_router)
+app.include_router(ai_router)
 
 
 
