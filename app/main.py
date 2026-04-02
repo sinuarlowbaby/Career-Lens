@@ -6,6 +6,7 @@ from pathlib import Path
 import logging
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from app.routes.api.routes import router
 from app.routes.api.upload import router as upload_router
 from app.routes.api.auth import router as auth_router
@@ -32,6 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Career Lens", description="Career Lens", version="1.0.0", lifespan=lifespan)
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "your-secret-key"))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -48,4 +50,4 @@ app.include_router(auth_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse(request=request, name="careerlens.html", context={"request": request})
+    return templates.TemplateResponse(request=request, name="index.html", context={"request": request})
