@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.db.models import InterviewSession, Answer
-from app.services.chat_service import call_qwen
+from app.llm.question_generator import generate_questions
+from app.llm.answer_evaluation import evaluate_answer
 
 
 def create_session(db: Session, user_id: int, role: str):
@@ -11,33 +12,14 @@ def create_session(db: Session, user_id: int, role: str):
     return session
 
 
-async def generate_questions(role: str):
-    prompt = f"""
-    Generate 5 technical interview questions for {role}
-    """
-
-    return await call_qwen(prompt)
+async def get_questions(role: str):
+    return await generate_questions(role)
 
 
-async def evaluate_answer(db: Session, session_id: int, answer: str):
-    prompt = f"""
-    Evaluate this answer:
+async def evaluate_user_answer(db: Session, session_id: int, answer: str):
+    ai_result = await evaluate_answer(answer)
 
-    {answer}
-
-    Return:
-    - score (0-10)
-    - feedback
-    - improvements
-    """
-
-    ai_result = await call_qwen(prompt)
-
-    answer_obj = Answer(
-        session_id=session_id,
-        answer=answer,
-        score=5  # later parse AI
-    )
+    answer_obj = Answer(session_id=session_id, answer=answer, score=5)
     db.add(answer_obj)
     db.commit()
 

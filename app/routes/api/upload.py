@@ -1,11 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File, Depends
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.services.document_service import process_resume
 
-router = APIRouter(prefix="/upload", tags=["upload"])
+router = APIRouter()
 
-@router.post("/resume")
-async def upload_resume():
-    return {"message": "Hello World"}
 
-@router.post("/job_description")
-async def upload_job_description():
-    return {"message": "Hello World"}
+@router.post("/")
+def upload_resume(
+    user_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    return process_resume(db, user_id, file)

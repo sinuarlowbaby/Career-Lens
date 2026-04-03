@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import jwt
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
+SECRET_KEY = os.getenv("SECRET_KEY", "secret")
 ALGORITHM = "HS256"
 
 
@@ -25,7 +25,7 @@ def get_or_create_user(db: Session, user_info: dict):
     return user
 
 
-def create_access_token(user_id: int):
+def create_token(user_id: int):
     payload = {
         "sub": str(user_id),
         "exp": datetime.utcnow() + timedelta(hours=24)

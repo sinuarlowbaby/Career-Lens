@@ -1,17 +1,16 @@
-from app.llm.llm_client import generate_response
-import asyncio
+from app.llm.llm_client import call_llm_async
+from app.rag.query_pipeline import query_knowledge_base
 
 
-async def call_qwen(prompt: str, system: str = "You are an AI career coach"):
-    """Call Groq LLM for AI responses"""
-    full_prompt = f"{system}\n\n{prompt}"
-    return await generate_response(full_prompt)
+async def chat_with_ai(message: str):
+    context = query_knowledge_base(message)
 
+    prompt = f"""
+    Context:
+    {context}
 
-async def generate_ai_response(prompt: str, context: dict = None):
-    response = await call_qwen(prompt)
+    User:
+    {message}
+    """
 
-    return {
-        "response": response,
-        "context": context
-    }
+    return await call_llm_async(prompt)

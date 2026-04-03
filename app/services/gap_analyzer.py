@@ -1,14 +1,5 @@
-from app.services.chat_service import call_qwen
+from app.llm.gap_analyzer import analyze_gap
 
 
-async def analyze_gap(resume_text: str, job_description: str):
-    prompt = f"""
-    Compare resume with job description.
-
-    Return:
-    - matched skills
-    - missing skills
-    - gap percentage
-    """
-
-    return await call_qwen(prompt)
+async def analyze_skill_gap(resume_text: str, job_desc: str):
+    return await analyze_gap(resume_text, job_desc)
