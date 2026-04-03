@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models import InterviewSession, Answer
+from app.db.models import InterviewSession, Answer
 from app.services.chat_service import call_qwen
 
 

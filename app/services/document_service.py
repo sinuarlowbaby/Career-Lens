@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.orm import Session
-from app.db.models import User
+from app.db.models import User, Resume
 
 UPLOAD_DIR = "uploads"
 

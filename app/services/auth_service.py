@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models import User
+from app.db.models import User
 from datetime import datetime, timedelta
 import jwt
 import os
