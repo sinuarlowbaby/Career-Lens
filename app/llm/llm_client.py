@@ -1,19 +1,21 @@
-from groq import AsyncGroq
 import os
-from dotenv import load_dotenv
+from groq import Groq
 
-load_dotenv()
-client = AsyncGroq(
-    api_key=os.getenv("GROQ_API_KEY"),
-)
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-async def generate_response(prompt: str):
-    response = await client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=1000,
-        temperature=0.7
-    )
-    return response.choices[0].message.content
+
+async def call_llm(prompt: str, system: str = "You are an AI career coach"):
+    try:
+        response = client.chat.completions.create(
+            model="llama3-70b-8192",  # fast + powerful
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        return f"LLM Error: {str(e)}"
