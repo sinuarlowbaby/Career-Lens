@@ -1,9 +1,9 @@
-from app.services.chat_service import generate_ai_response
+from app.services.chat_service import call_qwen
 
 
-async def analyze_gap_ai(resume_text: str, job_desc: str):
+async def analyze_gap(resume_text: str, job_description: str):
     prompt = f"""
-    Compare resume and job description.
+    Compare resume with job description.
 
     Return:
     - matched skills
@@ -11,4 +11,4 @@ async def analyze_gap_ai(resume_text: str, job_desc: str):
     - gap percentage
     """
 
-    return await generate_ai_response(prompt)
+    return await call_qwen(prompt)

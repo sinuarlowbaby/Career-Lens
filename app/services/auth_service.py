@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import jwt
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "secret")
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
 ALGORITHM = "HS256"
 
 

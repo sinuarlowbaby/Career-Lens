@@ -8,17 +8,17 @@ UPLOAD_DIR = "uploads"
 def save_file(file):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    path = os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-    with open(path, "wb") as f:
+    with open(file_path, "wb") as f:
         f.write(file.file.read())
 
-    return path
+    return file_path
 
 
 def extract_text(file_path: str):
-    # Later replace with pdfplumber
-    return "Parsed resume text"
+    # Replace later with pdfplumber / PyMuPDF
+    return "parsed resume text from file"
 
 
 def store_resume(db: Session, user_id: int, text: str):
