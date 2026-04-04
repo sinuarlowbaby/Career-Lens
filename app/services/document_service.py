@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 
 from sqlalchemy.orm import Session
-from app.db.models import Resume, FileType
+from app.db.models import Resume, JobDescription, FileType
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +146,29 @@ def store_resume(
     return resume
 
 
-# ── 4. Orchestrator ────────────────────────────────────────────────────────────
+def store_job_description(
+    db: Session,
+    user_id: int,
+    content: str,
+    title: str | None = None,
+) -> JobDescription:
+    """
+    Stores a job description (plain text) in the database.
+    Always creates a new row — users may compare multiple JDs.
+    """
+    jd = JobDescription(
+        user_id = user_id,
+        title   = title or "Untitled Job Description",
+        content = content,
+    )
+    db.add(jd)
+    db.commit()
+    db.refresh(jd)
+    logger.info(f"[DocumentService] JobDescription id={jd.id} stored for user_id={user_id}")
+    return jd
+
+
+# ── 4. Orchestrators ──────────────────────────────────────────────────────────
 
 def process_resume(db: Session, user_id: int, file) -> tuple[Resume, str]:
     """
@@ -173,3 +195,26 @@ def process_resume(db: Session, user_id: int, file) -> tuple[Resume, str]:
     )
 
     return resume, text
+
+
+def process_job_description_text(
+    db: Session,
+    user_id: int,
+    content: str,
+    title: str | None = None,
+) -> JobDescription:
+    """
+    Stores raw JD text (pasted from the frontend textarea) into
+    the job_descriptions table. No file saving or extraction needed.
+    Returns: JobDescription ORM object.
+    """
+    if not content or not content.strip():
+        raise ValueError("Job description text cannot be empty.")
+
+    jd = store_job_description(
+        db      = db,
+        user_id = user_id,
+        content = content.strip(),
+        title   = title,
+    )
+    return jd
