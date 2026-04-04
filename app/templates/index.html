@@ -900,11 +900,13 @@
 
       <div class="ats-grid">
         <div style="display:flex;flex-direction:column;gap:18px">
-          <div class="upload-zone" onclick="this.style.borderColor='#e0a820'">
-            <div class="upload-icon">📄</div>
-            <div class="upload-title">Upload Your Resume</div>
-            <div class="upload-sub">PDF, DOCX — up to 5MB</div>
+          <div class="upload-zone" id="uploadZone" onclick="triggerUpload()">
+            <div class="upload-icon" id="uploadIcon">📄</div>
+            <div class="upload-title" id="uploadTitle">Upload Your Resume</div>
+            <div class="upload-sub" id="uploadSub">PDF, DOCX, TXT — up to 5MB</div>
             <button class="upload-btn">Choose File</button>
+            <input type="file" id="resumeInput" accept=".pdf,.docx,.txt" style="display:none" onchange="handleResumeUpload(event)">
+            <div id="uploadStatus" style="margin-top: 10px; font-size: 0.85rem; font-weight: 600; display: none;"></div>
           </div>
           <div class="glass-panel">
             <div class="panel-title" style="margin-bottom:12px">📋 Paste Job Description</div>
@@ -1229,6 +1231,84 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
       body.appendChild(aiMsg);
       body.scrollTop = body.scrollHeight;
     }, 900);
+  }
+
+  // ── RESUME UPLOAD HANDLER ──────────────────────────────────────────────────
+
+  function triggerUpload() {
+    document.getElementById('resumeInput').click();
+  }
+
+  async function handleResumeUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const token = localStorage.getItem('token');
+    const statusDiv = document.getElementById('uploadStatus');
+    const zone = document.getElementById('uploadZone');
+    const icon = document.getElementById('uploadIcon');
+    const title = document.getElementById('uploadTitle');
+
+    if (!token) {
+      alert("Please log in first to upload your resume.");
+      // Optional: showSection('home') or redirect to login
+      return;
+    }
+
+    // UI state: Processing
+    statusDiv.style.display = 'block';
+    statusDiv.textContent = "⏳ Uploading and processing...";
+    statusDiv.style.color = "var(--text-mid)";
+    zone.style.borderColor = "var(--accent-yellow)";
+    
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/upload/resume', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Upload failed");
+      }
+
+      const data = await res.json();
+      console.log("[Upload] Success:", data);
+
+      // UI state: Success
+      statusDiv.textContent = "✅ Resume processed successfully!";
+      statusDiv.style.color = "#16a34a";
+      title.textContent = data.filename;
+      icon.textContent = "📑";
+      
+      // Update ATS Results panel with generic "Success" state for now
+      const kwGrid = document.querySelector('.kw-grid');
+      if (kwGrid) {
+        kwGrid.innerHTML = `
+          <span class="kw-tag kw-found">Extracted ${data.char_count} chars</span>
+          <span class="kw-tag kw-found">PDF Parsed</span>
+          <span class="kw-tag kw-found">Stored in DB</span>
+        `;
+      }
+      
+      const scoreNum = document.querySelector('.score-big-num');
+      if (scoreNum) {
+        scoreNum.innerHTML = `--<span style="font-size:1.5rem;opacity:0.4">/100</span>`;
+      }
+
+    } catch (err) {
+      console.error("[Upload] Error:", err);
+      statusDiv.textContent = `❌ Error: ${err.message}`;
+      statusDiv.style.color = "#dc2626";
+      zone.style.borderColor = "#dc2626";
+    } finally {
+      // Reset file input so same file can be selected again
+      event.target.value = '';
+    }
   }
 </script>
 </body>

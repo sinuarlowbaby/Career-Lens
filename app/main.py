@@ -35,16 +35,19 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up CareerLens...")
 
     from app.db.database import engine, Base
-    from app.db import models  # noqa: F401 — ensures models are registered
+    from app.db import models  # noqa: F401 — registers ALL models with Base
     from sqlalchemy import text
 
-    # Step 1: Create any missing tables
+    # Step 1: Create any missing tables (new tables added to models.py appear here)
     Base.metadata.create_all(bind=engine)
     logger.info("✅ Database tables verified/created")
 
-    # Step 2: Idempotent column migrations (safe to run every startup)
+    # Step 2: Idempotent column migrations — safe to run on every startup.
+    # These handle cases where a table already existed before a column was added.
     column_migrations = [
-        "ALTER TABLE users ADD COLUMN IF NOT EXISTS picture VARCHAR;",
+        # users table — add columns introduced after initial creation
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS picture VARCHAR(512);",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();",
     ]
     with engine.connect() as conn:
         for sql in column_migrations:
