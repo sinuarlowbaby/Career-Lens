@@ -39,3 +39,13 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.6.3
 uvicorn==0.42.0
+
+# Database Migrations
+alembic==1.18.4
+# Authentication
+python-jose==3.3.0
+passlib[bcrypt]==1.7.4
+# File Handling
+python-multipart==0.0.9
+pdfplumber==0.11.4
+
