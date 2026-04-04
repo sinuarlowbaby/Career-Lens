@@ -6,7 +6,7 @@ from starlette.requests import Request
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db.models import User
-from jose import jwt
+from jose import jwt, JWTError
 import datetime
 import os
 import logging
@@ -37,6 +37,14 @@ def create_access_token(user_id: int, email: str) -> str:
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_token(token: str) -> dict:
+    """Decode and validate a JWT token. Raises HTTPException on failure."""
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid or expired token: {str(e)}")
 
 
 @router.get("/login")
@@ -77,13 +85,24 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
             user = User(
                 email=user_info["email"],
                 name=user_info.get("name", ""),
-                google_id=user_info["sub"]
+                google_id=user_info["sub"],
+                picture=user_info.get("picture", ""),
             )
             db.add(user)
             db.commit()
             db.refresh(user)
             logger.info(f"[OAuth] Created new user id={user.id}")
         else:
+            # Keep profile picture and name up to date
+            updated = False
+            if user_info.get("picture") and getattr(user, "picture", None) != user_info["picture"]:
+                user.picture = user_info["picture"]
+                updated = True
+            if user_info.get("name") and user.name != user_info["name"]:
+                user.name = user_info["name"]
+                updated = True
+            if updated:
+                db.commit()
             logger.info(f"[OAuth] Found existing user id={user.id}")
     except Exception as e:
         db.rollback()
@@ -97,8 +116,30 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
     return RedirectResponse(url=redirect_url)
 
 
+@router.get("/me")
+async def get_me(request: Request, db: Session = Depends(get_db)):
+    """Returns the currently logged-in user profile. JWT from Authorization: Bearer <token>."""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+
+    token = auth_header.split(" ", 1)[1]
+    payload = decode_token(token)
+
+    user_id = int(payload.get("sub", 0))
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "picture": getattr(user, "picture", "") or "",
+    }
+
+
 @router.post("/logout")
 async def logout():
-    # JWT is stateless — logout is handled client-side by deleting the token.
-    # If you need server-side revocation later, add a token denylist in Redis.
-    return {"message": "Logged out. Please delete the token on the client."}
+    # JWT is stateless — client deletes the token from localStorage.
+    return {"message": "Logged out successfully."}

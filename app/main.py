@@ -33,11 +33,28 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up CareerLens...")
-    # Auto-create tables (replaces Alembic for development)
+
     from app.db.database import engine, Base
     from app.db import models  # noqa: F401 — ensures models are registered
+    from sqlalchemy import text
+
+    # Step 1: Create any missing tables
     Base.metadata.create_all(bind=engine)
     logger.info("✅ Database tables verified/created")
+
+    # Step 2: Idempotent column migrations (safe to run every startup)
+    column_migrations = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS picture VARCHAR;",
+    ]
+    with engine.connect() as conn:
+        for sql in column_migrations:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception as e:
+                logger.warning(f"Migration skipped ({sql.strip()}): {e}")
+
+    logger.info("✅ Column migrations applied")
     print("🚀 FastAPI server is ready!")
     print("APP UI  →  http://localhost:8000")
     print("📖 Swagger UI  →  http://localhost:8000/docs")
