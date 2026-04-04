@@ -89,7 +89,7 @@ class JobDescription(Base):
     user_id            = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title              = Column(String(255))                # "Software Engineer at Google"
     content            = Column(Text, nullable=False)       # full JD text
-    extracted_keywords = Column(JSON)                       # ["REST API", "Docker", ...]
+    extracted_keywords = Column(JSON, nullable=True)                       # ["REST API", "Docker", ...]
     created_at         = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationships
