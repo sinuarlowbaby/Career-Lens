@@ -49,8 +49,8 @@ class Resume(Base):
     upload_filename  = Column(String(512), nullable=False)        # original filename shown in UI
     file_path        = Column(String(512), nullable=False)        # server storage path / S3 key
     file_type        = Column(SAEnum(FileType), nullable=False)   # pdf | docx | txt
-    text_content     = Column(Text)                               # parsed raw text (for RAG)
-    extracted_skills = Column(JSON)                               # ["Python", "FastAPI", ...]
+    content          = Column(Text)                               # parsed raw text (for RAG)
+    extracted_skills = Column(JSON, nullable=True)                # ["Python", "FastAPI", ...]
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationships
@@ -62,22 +62,22 @@ class Resume(Base):
 
 # ── B1. Resume Chunks (for RAG pipeline) ─────────────────────────────────────
 
-class ResumeChunk(Base):
-    """
-    Stores individual text chunks used by FAISS / Qdrant.
-    Lets you reindex without re-uploading the file.
-    chunk_index = order within the resume (0, 1, 2 ...)
-    qdrant_id   = the point ID in your Qdrant collection (nullable until indexed)
-    """
-    __tablename__ = "resume_chunks"
+# class ResumeChunk(Base):
+#     """
+#     Stores individual text chunks used by FAISS / Qdrant.
+#     Lets you reindex without re-uploading the file.
+#     chunk_index = order within the resume (0, 1, 2 ...)
+#     qdrant_id   = the point ID in your Qdrant collection (nullable until indexed)
+#     """
+#     __tablename__ = "resume_chunks"
 
-    id          = Column(Integer, primary_key=True, index=True)
-    resume_id   = Column(Integer, ForeignKey("resumes.id", ondelete="CASCADE"), nullable=False, index=True)
-    chunk_index = Column(Integer, nullable=False)
-    text        = Column(Text, nullable=False)
-    qdrant_id   = Column(String(64))   # store as string; Qdrant uses UUID point IDs
+#     id          = Column(Integer, primary_key=True, index=True)
+#     resume_id   = Column(Integer, ForeignKey("resumes.id", ondelete="CASCADE"), nullable=False, index=True)
+#     chunk_index = Column(Integer, nullable=False)
+#     text        = Column(Text, nullable=False)
+#     qdrant_id   = Column(String(64))   # store as string; Qdrant uses UUID point IDs
 
-    resume = relationship("Resume", back_populates="chunks")
+#     resume = relationship("Resume", back_populates="chunks")
 
 
 # ── C. Job Descriptions ───────────────────────────────────────────────────────

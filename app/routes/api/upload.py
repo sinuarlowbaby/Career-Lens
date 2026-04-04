@@ -9,8 +9,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db.models import User
 from app.services.document_service import process_resume, process_job_description_text
-from app.routes.api.auth import decode_token
-
+from app.services.auth_service import get_current_user
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,26 +22,6 @@ router = APIRouter(prefix="/upload", tags=["upload"])
 class JobDescriptionRequest(BaseModel):
     content: str
     title: str | None = None
-
-
-# ── Auth helper ────────────────────────────────────────────────────────────────
-
-def get_current_user(
-    authorization: str = Header(..., description="Bearer <jwt>"),
-    db: Session = Depends(get_db),
-) -> User:
-    """Validates JWT from Authorization header and returns the User row."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-
-    token = authorization.split(" ", 1)[1]
-    payload = decode_token(token)          # raises 401 if invalid/expired
-
-    user_id = int(payload.get("sub", 0))
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
 
 
 # ── POST /upload/resume ────────────────────────────────────────────────────────
