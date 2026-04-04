@@ -27,9 +27,10 @@ class User(Base):
     __tablename__ = "users"
 
     id         = Column(Integer, primary_key=True, index=True)
-    name       = Column(String(255), nullable=False)
+    name       = Column(String(255), nullable=True)
     email      = Column(String(255), unique=True, index=True, nullable=False)
-    google_id  = Column(String(255), unique=True, index=True, nullable=False)
+    google_id  = Column(String(255), unique=True, index=True, nullable=True)  # nullable for flexibility
+    picture    = Column(String(512), nullable=True)   # Google profile photo URL
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationships
