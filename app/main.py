@@ -3,6 +3,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import logging
 from contextlib import asynccontextmanager
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from app.routes.api.routes import router
@@ -28,6 +33,11 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up CareerLens...")
+    # Auto-create tables (replaces Alembic for development)
+    from app.db.database import engine, Base
+    from app.db import models  # noqa: F401 — ensures models are registered
+    Base.metadata.create_all(bind=engine)
+    logger.info("✅ Database tables verified/created")
     print("🚀 FastAPI server is ready!")
     print("APP UI  →  http://localhost:8000")
     print("📖 Swagger UI  →  http://localhost:8000/docs")
