@@ -68,6 +68,7 @@ async def upload_resume(
         logger.error(f"[Upload] Unexpected error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+
     return {
         "resume_id": resume.id,
         "filename":  resume.upload_filename,
