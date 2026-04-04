@@ -1,8 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 import logging
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,29 +13,37 @@ import dotenv
 import os
 
 dotenv.load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
+
+# ── Fail loudly on missing secrets ────────────────────────────────────────────
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable is not set")
+
+# ── CORS: list your actual origins (wildcard + credentials is rejected by browsers) ──
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://localhost:3000").split(",")
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting RAG pipeline...")
-    print("Starting up...")
+    logger.info("Starting up CareerLens...")
     print("🚀 FastAPI server is ready!")
     print("APP UI  →  http://localhost:8000")
     print("📖 Swagger UI  →  http://localhost:8000/docs")
     yield
-    print("Shutting down...")
-    logger.info("🛑 shutting down System...")
+    logger.info("🛑 Shutting down CareerLens...")
 
-app = FastAPI(title="Career Lens", description="Career Lens", version="1.0.0", lifespan=lifespan)
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+app = FastAPI(title="Career Lens", description="Career Lens AI", version="1.0.0", lifespan=lifespan)
+
 templates = Jinja2Templates(directory="app/templates")
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "your-secret-key"))
+
+# SessionMiddleware MUST be added before CORSMiddleware
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,   # No more wildcard — browsers require explicit origins with credentials
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,7 +53,6 @@ app.include_router(router)
 app.include_router(upload_router)
 app.include_router(auth_router)
 app.include_router(ai_router)
-
 
 
 @app.get("/", response_class=HTMLResponse)
