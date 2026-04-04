@@ -23,4 +23,6 @@ env/
 *.log
 
 uploads
+vector_store
+.DS_Store
 

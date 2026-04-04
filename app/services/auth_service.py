@@ -31,3 +31,20 @@ def create_access_token(user_id: int):
         "exp": datetime.utcnow() + timedelta(hours=24)
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+def get_current_user(
+    authorization: str = Header(..., description="Bearer <jwt>"),
+    db: Session = Depends(get_db),
+) -> User:
+    """Validates JWT from Authorization header and returns the User row."""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+
+    token = authorization.split(" ", 1)[1]
+    payload = decode_token(token)          # raises 401 if invalid/expired
+
+    user_id = int(payload.get("sub", 0))
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

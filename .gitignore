@@ -3,3 +3,5 @@ __pycache__
 .venv
 .env.examplew
 uploads
+vector_store
+.DS_Store
