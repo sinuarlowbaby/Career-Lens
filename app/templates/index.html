@@ -154,6 +154,55 @@
   }
   .btn-dark:hover { background: #2a2825; transform: translateY(-1px); }
 
+  /* ── USER CHIP (logged-in state) ── */
+  .user-chip {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: var(--radius);
+    padding: 6px 14px 6px 6px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    cursor: default;
+    transition: background 0.2s;
+  }
+  .user-chip.visible { display: flex; }
+  .user-avatar-img {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.9);
+    background: linear-gradient(135deg,#b8a9f0,#f5c842);
+    flex-shrink: 0;
+  }
+  .user-name-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .btn-logout {
+    display: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #dc2626;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    transition: all 0.2s;
+  }
+  .btn-logout.visible { display: block; }
+  .btn-logout:hover { background: rgba(239,68,68,0.18); transform: translateY(-1px); }
+
   /* ── SECTIONS ── */
   .section { display: none; }
   .section.active { display: block; }
@@ -616,9 +665,16 @@
       <button onclick="showSection('gap',this)">Job Gap Analyzer</button>
     </div>
 
-    <div class="nav-right">
-      <button class="btn-ghost">Log in</button>
-      <button class="btn-dark">Sign Up</button>
+    <div class="nav-right" id="navRight">
+      <!-- Logged-OUT state -->
+      <button class="btn-ghost" id="btnLogin" onclick="window.location.href='/auth/login'">Log in</button>
+
+      <!-- Logged-IN state -->
+      <div class="user-chip" id="userChip">
+        <img class="user-avatar-img" id="userAvatar" src="" alt="avatar" />
+        <span class="user-name-label" id="userName">...</span>
+      </div>
+      <button class="btn-logout" id="btnLogout" onclick="doLogout()">Log out</button>
     </div>
   </nav>
 
@@ -657,7 +713,7 @@
       <div class="section-header">
         <div>
           <div class="section-title">Your Dashboard</div>
-          <div class="section-sub">Welcome back, Sinu 👋 — here's your career snapshot</div>
+          <div class="section-sub" id="dashWelcome">Welcome back 👋 — here's your career snapshot</div>
         </div>
         <button class="btn-yellow" style="padding:11px 24px;font-size:0.85rem;">+ New Analysis</button>
       </div>
@@ -989,6 +1045,118 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
 </div><!-- end gradient-bg -->
 
 <script>
+
+  // ── AUTH STATE MANAGER ────────────────────────────────────────────────────
+
+  /**
+   * Step 1 — If Google just redirected back with a token in the URL hash,
+   * save it and clean the URL immediately.
+   */
+  (function captureTokenFromHash() {
+    const hash = window.location.hash;
+    if (hash.includes('access_token')) {
+      // Handle both #access_token=XXX and #access_token=XXX&other=...
+      const params = new URLSearchParams(hash.slice(1));
+      const token = params.get('access_token');
+      if (token) {
+        localStorage.setItem('token', token);
+        console.log('[Auth] Token saved from redirect.');
+      }
+      // Clean the URL — remove the hash fragment
+      history.replaceState(null, '', window.location.pathname);
+    }
+  })();
+
+  /**
+   * Step 2 — On every page load, check if a token exists and fetch the user
+   * profile to update the navbar UI.
+   */
+  async function initAuthUI() {
+    const token = localStorage.getItem('token');
+    const btnLogin  = document.getElementById('btnLogin');
+    const btnLogout = document.getElementById('btnLogout');
+    const userChip  = document.getElementById('userChip');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName  = document.getElementById('userName');
+    const dashWelcome = document.getElementById('dashWelcome');
+
+    if (!token) {
+      // No token — show login button
+      btnLogin.style.display = '';
+      return;
+    }
+
+    try {
+      const res = await fetch('/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        // Token invalid / expired — clear it and show login
+        localStorage.removeItem('token');
+        btnLogin.style.display = '';
+        console.warn('[Auth] Token rejected by server, cleared.');
+        return;
+      }
+
+      const user = await res.json();
+
+      // ── Show user chip & logout, hide login ──
+      btnLogin.style.display = 'none';
+      userChip.classList.add('visible');
+      btnLogout.classList.add('visible');
+
+      // Set avatar
+      if (user.picture) {
+        userAvatar.src = user.picture;
+        userAvatar.onerror = () => { userAvatar.src = ''; }; // graceful fallback
+      } else {
+        // Fallback: initials circle via CSS gradient (no src needed)
+        userAvatar.style.display = 'none';
+      }
+
+      // Set name
+      const firstName = (user.name || user.email).split(' ')[0];
+      userName.textContent = firstName;
+
+      // Update dashboard welcome
+      if (dashWelcome) {
+        dashWelcome.textContent = `Welcome back, ${firstName} 👋 — here's your career snapshot`;
+      }
+
+      console.log(`[Auth] Logged in as ${user.email}`);
+
+    } catch (err) {
+      console.error('[Auth] Failed to fetch user info:', err);
+    }
+  }
+
+  /**
+   * Step 3 — Logout: remove token and reset UI.
+   */
+  function doLogout() {
+    localStorage.removeItem('token');
+
+    // Reset navbar
+    document.getElementById('btnLogin').style.display = '';
+    document.getElementById('userChip').classList.remove('visible');
+    document.getElementById('btnLogout').classList.remove('visible');
+    document.getElementById('userName').textContent = '...';
+    document.getElementById('userAvatar').src = '';
+
+    // Reset dashboard welcome
+    const dw = document.getElementById('dashWelcome');
+    if (dw) dw.textContent = "Welcome back 👋 — here's your career snapshot";
+
+    // Optional: notify server (fire-and-forget)
+    fetch('/auth/logout', { method: 'POST' }).catch(() => {});
+
+    console.log('[Auth] Logged out.');
+  }
+
+  // Run on load
+  initAuthUI();
+
   function showSection(id, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
