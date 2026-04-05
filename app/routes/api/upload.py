@@ -7,9 +7,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.db.models import User
+from app.db.models import User, Resume, JobDescription
 from app.services.document_service import process_resume, process_job_description_text
 from app.services.auth_service import get_current_user
+from app.rag.ingestion_pipeline import ingestion_pipeline
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,12 +56,31 @@ async def upload_resume(
         logger.error(f"[Upload] Unexpected error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+    # ── Auto-embed: trigger if JD already exists ─────────────────────────────
+    embedded = False
+    jd = db.query(JobDescription).filter(JobDescription.user_id == current_user.id).first()
+    if jd:
+        try:
+            await ingestion_pipeline(
+                db=db,
+                user_id=current_user.id,
+                resume_content=text,
+                job_description_content=jd.content,
+                resume_id=resume.id,
+                jd_id=jd.id,
+            )
+            embedded = True
+            logger.info(f"[Upload] Auto-embedding complete for user_id={current_user.id}")
+        except Exception as e:
+            logger.error(f"[Upload] Auto-embedding failed: {e}", exc_info=True)
+
     return {
-        "resume_id": resume.id,
-        "filename":  resume.upload_filename,
-        "file_type": resume.file_type,
-        "text":      text,
+        "resume_id":  resume.id,
+        "filename":   resume.upload_filename,
+        "file_type":  resume.file_type,
+        "text":       text,
         "char_count": len(text),
+        "embedded":   embedded,
     }
 
 
@@ -92,8 +112,27 @@ async def upload_job_description(
         logger.error(f"[Upload] Unexpected error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+    # ── Auto-embed: trigger if Resume already exists ───────────────────────────
+    embedded = False
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).first()
+    if resume:
+        try:
+            await ingestion_pipeline(
+                db=db,
+                user_id=current_user.id,
+                resume_content=resume.content,
+                job_description_content=jd.content,
+                resume_id=resume.id,
+                jd_id=jd.id,
+            )
+            embedded = True
+            logger.info(f"[Upload] Auto-embedding complete for user_id={current_user.id}")
+        except Exception as e:
+            logger.error(f"[Upload] Auto-embedding failed: {e}", exc_info=True)
+
     return {
         "jd_id":      jd.id,
         "title":      jd.title,
         "char_count": len(jd.content),
+        "embedded":   embedded,
     }

@@ -20,6 +20,11 @@ class AskResponse(BaseModel):
     response: str
 
 
+class EmbedResponse(BaseModel):
+    status: str
+    message: str
+
+
 @router.post("/ask", response_model=AskResponse)
 async def ask_ai(body: Prompt):
     # Bug fix: was passing the whole Pydantic object — must pass body.prompt (the string)
@@ -28,14 +33,14 @@ async def ask_ai(body: Prompt):
 
 
 
-@router.post("/embed_docs", response_model=AskResponse)
+@router.post("/embed_docs", response_model=EmbedResponse)
 async def embed_docs(
-    db: Session = Depends(get_db), # Don't forget Depends() for your DB session
-    user_id: str = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     # 1. Fetch the entire row efficiently (only 2 queries instead of 4)
-    resume = db.query(Resume).filter(Resume.user_id == user_id).first()
-    jd = db.query(JobDescription).filter(JobDescription.user_id == user_id).first()
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).first()
+    jd = db.query(JobDescription).filter(JobDescription.user_id == current_user.id).first()
 
     # 2. Safety Check: Ensure the data actually exists before trying to access .content
     if not resume or not jd:
@@ -46,11 +51,11 @@ async def embed_docs(
 
     result = await ingestion_pipeline(
         db=db, 
-        user_id=user_id, 
+        user_id=current_user.id, 
         resume_content=resume.content, 
         job_description_content=jd.content, 
         resume_id=resume.id, 
         jd_id=jd.id
     )
-    return {"status": "success", "message": f"Successfully processed {result['chunks_stored']} chunks."} 
+    return EmbedResponse(status="success", message=f"Successfully processed {result['chunks_stored']} chunks.") 
 
