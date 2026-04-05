@@ -1,24 +1,28 @@
 import os
+import chromadb
 from dotenv import load_dotenv
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_openai import OpenAIEmbeddings
-from sqlalchemy.orm import Session
 from langchain_chroma import Chroma
-# from app.db.models import ResumeChunk
+from sqlalchemy.orm import Session
 
 load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY  = os.getenv("OPENAI_API_KEY")
 EMBEDDING_MODEL = "text-embedding-3-small"
+CHROMA_HOST     = os.getenv("CHROMA_HOST", "localhost")
+CHROMA_PORT     = int(os.getenv("CHROMA_PORT", "8001"))
 
 # 1. Initialize the embedding function once
 embedder = OpenAIEmbeddings(model=EMBEDDING_MODEL)
 
-# 2. Initialize Chroma. It now knows exactly how to embed anything you give it.
+# 2. Connect to the Chroma HTTP server (run: chroma run --path ./chroma_data --port 8001)
+chroma_client = chromadb.HttpClient(host="localhost", port=8001)
+
 vector_store = Chroma(
-    persist_directory="./vector_store",
+    client=chroma_client,
     embedding_function=embedder,
-    collection_name="career_lens"
+    collection_name="career_lens",
 )
 
 def chunks_docs(resume_content: str, job_description_content: str, user_id: str, resume_id: int, jd_id: int):

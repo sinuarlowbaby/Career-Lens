@@ -125,7 +125,7 @@ def store_resume(
     )
 
     if resume:
-        resume.text_content = text_content
+        resume.content      = text_content
         resume.file_path    = str(file_path)
         resume.file_type    = file_type
         logger.info(f"[DocumentService] Updated existing resume id={resume.id}")
@@ -135,7 +135,7 @@ def store_resume(
             upload_filename = filename,
             file_path       = str(file_path),
             file_type       = file_type,
-            text_content    = text_content,
+            content         = text_content,
         )
         db.add(resume)
         logger.info("[DocumentService] Creating new resume row")

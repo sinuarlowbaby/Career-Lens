@@ -59,23 +59,28 @@ cd "Career Lens"
 ```
 
 ### 2. Set up a Python Virtual Environment
-```bash
-python -m venv .venv
-# On Windows:
-.venv\Scripts\activate
-# On macOS/Linux:
-source .venv/bin/activate
+```cmd
+1. powershell - powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+2. uv init
+3. uv venv
 ```
 
 ### 3. Install Dependencies
 ```bash
-pip install -r requirements.txt
+
+uv pip install -r requirements.txt
 
 freeze
-pip freeze > requirements.txt
+uv pip freeze > requirements.txt
+
+
 
 ```
-
+### 3. Install ChromaDB
+```cmd
+chroma run --path ./chroma_data --port 8001
+```
+```
 ### 4. Environment Variables
 Create a `.env` file in the root directory and configure your necessary API keys:
 ```env
@@ -85,7 +90,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 ### 5. Run the Application
 Launch the FastAPI server using Uvicorn:
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 You should now see the application UI running at `http://localhost:8000`, and the Swagger API documentation at `http://localhost:8000/docs`.
 

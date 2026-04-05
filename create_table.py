@@ -5,7 +5,7 @@ Usage:  python create_tables.py
 from app.db.database import engine, Base
  
 # Import every model so Base.metadata knows about them
-from app.db.models import User, Resume, ResumeChunk, JobDescription, Interview, QALog, ATSReport  # noqa
+from app.db.models import User, Resume, JobDescription, Interview, QALog, ATSReport  # noqa
  
 if __name__ == "__main__":
     print("Creating tables...")

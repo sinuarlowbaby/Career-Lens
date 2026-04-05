@@ -5,3 +5,6 @@ __pycache__
 uploads
 vector_store
 .DS_Store
+chroma_data
+.python-version
+
