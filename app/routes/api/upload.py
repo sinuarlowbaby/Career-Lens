@@ -58,7 +58,7 @@ async def upload_resume(
 
     # ── Auto-embed: trigger if JD already exists ─────────────────────────────
     embedded = False
-    jd = db.query(JobDescription).filter(JobDescription.user_id == current_user.id).first()
+    jd = db.query(JobDescription).filter(JobDescription.user_id == current_user.id).order_by(JobDescription.created_at.desc()).first()
     if jd:
         try:
             await ingestion_pipeline(
@@ -114,7 +114,7 @@ async def upload_job_description(
 
     # ── Auto-embed: trigger if Resume already exists ───────────────────────────
     embedded = False
-    resume = db.query(Resume).filter(Resume.user_id == current_user.id).first()
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).order_by(Resume.created_at.desc()).first()
     if resume:
         try:
             await ingestion_pipeline(
