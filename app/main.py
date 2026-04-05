@@ -14,6 +14,7 @@ from app.routes.api.routes import router
 from app.routes.api.upload import router as upload_router
 from app.routes.api.auth import router as auth_router
 from app.routes.api.ai import router as ai_router
+from app.routes.api.chroma_proxy import router as chroma_proxy_router
 import dotenv
 import os
 
@@ -83,8 +84,15 @@ app.include_router(router)
 app.include_router(upload_router)
 app.include_router(auth_router)
 app.include_router(ai_router)
+app.include_router(chroma_proxy_router)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse(request=request, name="index.html", context={"request": request})
+
+
+@app.get("/chroma-ui", response_class=HTMLResponse)
+async def read_chroma_ui(request: Request):
+    return templates.TemplateResponse(request=request, name="chromadb-ui_1.html", context={"request": request})
+

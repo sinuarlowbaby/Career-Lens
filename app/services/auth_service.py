@@ -1,11 +1,22 @@
 from sqlalchemy.orm import Session
-from app.models import User
+from app.db.models import User
+from app.db.session import get_db
+from fastapi import Header, Depends, HTTPException
 from datetime import datetime, timedelta
 import jwt
 import os
 
 SECRET_KEY = os.getenv("SECRET_KEY", "secret")
 ALGORITHM = "HS256"
+
+
+def decode_token(token: str):
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 def get_or_create_user(db: Session, user_info: dict):
