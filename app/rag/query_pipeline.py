@@ -23,17 +23,17 @@ def deduplicate_docs(docs_resume, docs_jd):
     return unique_resume_docs, unique_jd_docs
     
 
-async def query_pipeline(user_query: str, user :User,resume_id: int, jd_id: int , top_k: int):
+async def query_pipeline(user_query: str, user_id :str,resume_id: int, jd_id: int , top_k: int):
     query_embedding = get_embedding(user_query)
     all_resume = vector_store.similarity_search(
         query_embedding,
         k=top_k,
-        filter={"user_id": user.id, "type": "resume", "resume_id": resume_id}
+        filter={"user_id": user_id, "type": "resume", "resume_id": resume_id}
     )
     all_jd = vector_store.similarity_search(
         query_embedding,
         k=top_k,
-        filter={"user_id": user.id, "type": "job_description", "jd_id": jd_id}
+        filter={"user_id": user_id, "type": "job_description", "jd_id": jd_id}
     )
     resume_docs, jd_docs = deduplicate_docs(all_resume , all_jd)
 
