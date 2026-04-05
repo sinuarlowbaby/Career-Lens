@@ -27,6 +27,27 @@ async def chroma_proxy(version: str, path: str, request: Request):
         if k.lower() not in ("host", "content-length")
     }
 
+    # Intercept queries to automatically convert query_texts to query_embeddings using OpenAI
+    if request.method == "POST" and "query" in path and body:
+        try:
+            import json
+            from langchain_openai import OpenAIEmbeddings
+            payload = json.loads(body)
+            if "query_texts" in payload and "query_embeddings" not in payload:
+                embedder = OpenAIEmbeddings()
+                # Embed all provided texts
+                payload["query_embeddings"] = embedder.embed_documents(payload["query_texts"])
+                del payload["query_texts"]
+                
+                # Re-serialize the body
+                body = json.dumps(payload).encode("utf-8")
+                # Ensure the proxied length is still accurate or missing so httpx manages it
+                if "content-length" in headers:
+                    del headers["content-length"]
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Proxy auto-embed failed:", exc_info=True)
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
             resp = await client.request(

@@ -49,13 +49,13 @@ class Resume(Base):
     upload_filename  = Column(String(512), nullable=False)        # original filename shown in UI
     file_path        = Column(String(512), nullable=False)        # server storage path / S3 key
     file_type        = Column(SAEnum(FileType), nullable=False)   # pdf | docx | txt
-    content          = Column(Text)                               # parsed raw text (for RAG)
+    content          = Column("text_content", Text)               # parsed raw text (for RAG)
     extracted_skills = Column(JSON, nullable=True)                # ["Python", "FastAPI", ...]
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationships
     user       = relationship("User",        back_populates="resumes")
-    chunks     = relationship("ResumeChunk", back_populates="resume", cascade="all, delete-orphan")
+    # chunks     = relationship("ResumeChunk", back_populates="resume", cascade="all, delete-orphan")
     interviews = relationship("Interview",   back_populates="resume")
     ats_reports= relationship("ATSReport",   back_populates="resume")
 

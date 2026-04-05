@@ -8,6 +8,12 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+import os
+import dotenv
+
+# Load .env explicitly before importing any modules that rely on os.getenv()
+dotenv.load_dotenv()
+
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from app.routes.api.routes import router
@@ -15,10 +21,6 @@ from app.routes.api.upload import router as upload_router
 from app.routes.api.auth import router as auth_router
 from app.routes.api.ai import router as ai_router
 from app.routes.api.chroma_proxy import router as chroma_proxy_router
-import dotenv
-import os
-
-dotenv.load_dotenv()
 
 # ── Fail loudly on missing secrets ────────────────────────────────────────────
 SECRET_KEY = os.getenv("SECRET_KEY")
