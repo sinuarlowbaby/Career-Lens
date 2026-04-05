@@ -5,6 +5,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_groq import ChatGroq  # Use LangChain's Groq integration
 import os
 from dotenv import load_dotenv
+from fastapi import HTTPException
 
 load_dotenv()
 
@@ -64,5 +65,4 @@ async def analyze_gap_ai(resume_text: str, job_desc: str):
     except Exception as e:
         # Catch rate limits or parsing errors
         print(f"Error during AI analysis: {e}")
-        # Depending on your backend framework, raise the appropriate HTTP Exception here
-        raise
+        raise HTTPException(status_code=500, detail=f"Error during AI analysis: {str(e)}")

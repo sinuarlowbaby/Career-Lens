@@ -130,12 +130,22 @@ async def get_me(request: Request, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+        
+    resume = sorted(user.resumes, key=lambda x: x.created_at, reverse=True)[0] if user.resumes else None
+    jd = sorted(user.job_descriptions, key=lambda x: x.created_at, reverse=True)[0] if user.job_descriptions else None
 
     return {
         "id": user.id,
         "name": user.name,
         "email": user.email,
         "picture": getattr(user, "picture", "") or "",
+        "resume": {
+            "filename": resume.upload_filename,
+            "text": resume.content
+        } if resume else None,
+        "job_description": {
+            "text": jd.content
+        } if jd else None,
     }
 
 

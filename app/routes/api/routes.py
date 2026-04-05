@@ -1,9 +1,7 @@
-from fastapi import APIRouter,Depends
-from app.rag.query_pipeline import query_pipeline
-from app.models.user import User,Resume,JobDescription
-from app.db.database import get_current_user
-from app.services.gap_analyzer import analyze_gap_ai
-
+from fastapi import APIRouter, Depends, HTTPException
+from app.rag.query_pipeline import query_pipeline, gap_analysis_pipeline
+from app.db.models import User,Resume,JobDescription
+from app.services.auth_service import get_current_user
 
 router = APIRouter()
 
@@ -24,16 +22,20 @@ async def interview():
     return {"message": "Hello World"}
 
 @router.post("/gap_analysis")
-async def gap_analysis(user_query: str, user: User = Depends(get_current_user),top_k: int = 10):
-    resume_id = user.resumes.first().id
-    jd_id = user.job_descriptions.first().id
-    resume_docs, jd_docs = await query_pipeline(user_query, user.id,resume_id, jd_id , top_k)
-
-    resume_text = "\n".join([doc.page_content for doc in resume_docs])
-    jd_text = "\n".join([doc.page_content for doc in jd_docs])
-
-    gap_analysis = await analyze_gap_ai(resume_text, jd_text)
-    return {"resume_docs": resume_docs, "jd_docs": jd_docs, "gap_analysis": gap_analysis}
+async def gap_analysis(user: User = Depends(get_current_user)):
+    if not user.resumes or len(user.resumes) == 0:
+        raise HTTPException(status_code=400, detail="No resume uploaded. Please upload a resume first.")
+    if not user.job_descriptions or len(user.job_descriptions) == 0:
+        raise HTTPException(status_code=400, detail="No job description uploaded. Please upload a job description first.")
+        
+    latest_resume = sorted(user.resumes, key=lambda r: r.created_at, reverse=True)[0]
+    latest_jd = sorted(user.job_descriptions, key=lambda j: j.created_at, reverse=True)[0]
+    
+    resume_id = latest_resume.id
+    jd_id = latest_jd.id
+    
+    result = await gap_analysis_pipeline(user.id, resume_id, jd_id)
+    return result
 
 @router.post("/auth")
 async def auth():
