@@ -1938,15 +1938,16 @@
             <button class="ctx-go-btn" onclick="goUpload()">Upload Now →</button>
           </div>
         </div>
-
-        <div class="topic-row">
+        <!--<div class="topic-row">
           <button class="topic-btn active">🧠 Behavioural</button>
           <button class="topic-btn">⚙️ System Design</button>
           <button class="topic-btn">🐍 Python / DSA</button>
           <button class="topic-btn">🤖 ML / AI</button>
           <button class="topic-btn">🗄️ SQL &amp; Databases</button>
           <button class="topic-btn">📦 FastAPI / Backend</button>
-        </div>
+        </div>            <div class="status-badge">⏱ 00:04:32</div>
+ Context bar -->
+
 
         <div class="chat-window">
           <div class="chat-header">
@@ -1955,7 +1956,6 @@
               <div class="chat-name">CareerLens Interviewer</div>
               <div class="chat-status">● Online — Behavioural Round</div>
             </div>
-            <div class="status-badge">⏱ 00:04:32</div>
           </div>
           <div class="chat-body" id="chatBody">
             <div class="msg ai">
@@ -2572,11 +2572,19 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
       btn.textContent = '⏳ Analyzing with AI...';
 
       try {
+        const gapResumeText = document.getElementById('gapResumeText').value;
+        const gapJdText = document.getElementById('gapJdText').value;
+
         const res = await fetch('/gap_analysis', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            resume_text: gapResumeText,
+            jd_text: gapJdText
+          })
         });
 
         if (!res.ok) {

@@ -78,6 +78,7 @@ uv pip freeze > requirements.txt
 ```
 ### 3. Install ChromaDB
 ```cmd
+.venv\Scripts\activate
 chroma run --path ./chroma_data --port 8001
 ```
 ```
