@@ -1,6 +1,6 @@
 import json
 import re
-from app.llm.llm_client import call_llm_async
+from app.llm.llm_client import generate_response
 
 
 def extract_json(text: str):
@@ -27,14 +27,14 @@ async def analyze_resume(resume_text: str, job_desc: str):
     {job_desc}
     """
 
-    raw = await call_llm_async(prompt)
+    raw = await generate_response(prompt)
 
     try:
         return json.loads(extract_json(raw))
-    except:
+    except Exception as e:
         return {
             "score": 50,
             "matched_skills": [],
             "missing_skills": [],
-            "suggestions": [raw]
+            "suggestions": [f"AI Parsing Error: {str(e)}", raw]
         }

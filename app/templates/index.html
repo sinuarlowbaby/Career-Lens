@@ -1965,6 +1965,8 @@
                   Hello! I'm your AI interviewer today. Let's start with a behavioural round.<br><br>
                   <strong>Question 1:</strong> Tell me about a time when you had to learn a new technology quickly under
                   pressure. What was your approach and what was the outcome?
+                  Hello! I'm your versatile AI Career Coach and Interviewer. I can help you prepare for roles in <strong>Programming, Finance, Science, Architecture</strong>, and more!<br><br>
+                  If you've uploaded your resume, we can jump right into a mock interview. Otherwise, just tell me what domain you'd like to practice, or feel free to ask me any career-related questions!
                 </div>
                 <div class="q-chips" style="margin-top:10px">
                   <span class="q-chip" onclick="chipClick(this)">💡 Give me a hint</span>
@@ -2030,7 +2032,7 @@
               <div class="tc-label">📋 Job Description</div>
               <textarea class="tc-textarea" id="atsJdDisplay"
                 placeholder="Paste a job description here, or upload documents on the home page to pre-fill this field..."></textarea>
-              <button class="analyze-btn" style="margin-top:14px">⚡ Analyze Now</button>
+              <button class="analyze-btn" style="margin-top:14px" onclick="runAtsAnalysis()">⚡ Analyze Now</button>
             </div>
           </div>
           <div class="ats-results">
@@ -2235,11 +2237,6 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
       const token = localStorage.getItem('token');
       const rName = appState.resume ? appState.resume.name : (appState.resumeFilename || null);
 
-      if (!token) {
-        alert("Please log in first to upload your documents.");
-        return;
-      }
-
       // UI: Loading state
       btn.disabled = true;
       btn.textContent = '⏳ Processing...';
@@ -2252,13 +2249,18 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
         try {
           const res = await fetch('/upload/resume', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
             body: formData
           });
 
           if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.detail || "Resume upload failed");
+            const isJson = res.headers.get('content-type')?.includes('application/json');
+            if (isJson) {
+              const errorData = await res.json();
+              throw new Error(errorData.detail || "Resume upload failed");
+            } else {
+              throw new Error(await res.text() || `Upload failed with status ${res.status}`);
+            }
           }
 
           const data = await res.json();
@@ -2283,15 +2285,20 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
           const res = await fetch('/upload/job_description', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${token}`,
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ content: appState.jdText })
           });
 
           if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.detail || "JD upload failed");
+            const isJson = res.headers.get('content-type')?.includes('application/json');
+            if (isJson) {
+              const errorData = await res.json();
+              throw new Error(errorData.detail || "JD upload failed");
+            } else {
+              throw new Error(await res.text() || `Upload failed with status ${res.status}`);
+            }
           }
 
           const data = await res.json();
@@ -2529,30 +2536,76 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
       body.scrollTop = body.scrollHeight;
     }
 
-    function sendMsg() {
+    async function sendMsg() {
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
       if (!text) return;
       const body = document.getElementById('chatBody');
       const userMsg = document.createElement('div');
       userMsg.className = 'msg user';
-      userMsg.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-bubble">${text}</div>`;
+      userMsg.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-bubble">${escHtml(text)}</div>`;
       body.appendChild(userMsg);
       input.value = '';
       body.scrollTop = body.scrollHeight;
-      setTimeout(() => {
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'msg ai';
-        aiMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">
-      Good answer! Here's my feedback:<br><br>
-      ✅ <strong>Clear structure</strong> — situation and result are well-defined<br>
-      ⚠️ <strong>Add metrics</strong> — quantify the impact where possible<br>
-      💡 <strong>Tip:</strong> Mention stakeholder communication in such scenarios<br><br>
-      Ready for the next question?
-    </div>`;
-        body.appendChild(aiMsg);
-        body.scrollTop = body.scrollHeight;
-      }, 900);
+      
+      const aiMsg = document.createElement('div');
+      aiMsg.className = 'msg ai';
+      aiMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">Thinking... 💭</div>`;
+      body.appendChild(aiMsg);
+      body.scrollTop = body.scrollHeight;
+
+      if (!appState.chatHistory) {
+        // Initialize memory so AI knows what it said first
+        appState.chatHistory = [{
+          role: "assistant", 
+          content: "Hello! I'm your versatile AI Career Coach and Interviewer. I can help you prepare for roles in Programming, Finance, Science, Architecture, and more! If you've uploaded your resume, we can jump right into a mock interview. Otherwise, just tell me what domain you'd like to practice, or feel free to ask me any career-related questions!"
+        }];
+      }
+
+      // Build a versatile dynamic system prompt
+      let sysPrompt = `You are an expert, versatile AI Interviewer and Career Coach. 
+      Your capabilities cover ALL domains (Finance, Programming, Architecture, Science, Management, etc.).
+      
+      Guidelines:
+      1. IF the user wants to just chat normally, be a helpful, conversational AI assistant.
+      2. IF the user is answering an interview question, evaluate their answer, provide brief constructive feedback, and ask the NEXT question.
+      3. IF the user asks for a mock interview but no context is provided, ASK them what domain/role they are preparing for before starting.
+      4. Keep your responses concise, engaging, and professional.`;
+      
+      if (appState.extractedText || appState.jdText) {
+        sysPrompt += "\n\nContext about the candidate (tailor your questions to their studies, projects, and the job description):\n";
+        if (appState.extractedText) sysPrompt += `Resume/Studies: ${appState.extractedText.substring(0, 1500)}\n`;
+        if (appState.jdText) sysPrompt += `Target Job: ${appState.jdText.substring(0, 1000)}\n`;
+      } else {
+        sysPrompt += "\n\nNote: The user has NOT uploaded a resume or job description yet.";
+      }
+
+      appState.chatHistory.push({role: "user", content: text});
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            prompt: text,
+            system: sysPrompt,
+            history: appState.chatHistory.slice(-10) // Remember the last 10 messages
+          })
+        });
+        
+        if (!res.ok) throw new Error("Failed to connect to AI.");
+        
+        const data = await res.json();
+        let formattedText = escHtml(data.response).replace(/\n/g, '<br>');
+        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        appState.chatHistory.push({role: "assistant", content: data.response});
+        aiMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">${formattedText}</div>`;
+      } catch (err) {
+        console.error(err);
+        aiMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble" style="color: #dc2626;">Error connecting to AI Interviewer. Please try again.</div>`;
+      }
+      body.scrollTop = body.scrollHeight;
     }
 
     // ── INIT ──────────────────────────────────────────────────────────────────
@@ -2562,11 +2615,6 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
     // ── GAP ANALYSIS ──────────────────────────────────────────────────────────
     async function runGapAnalysis() {
       const token = localStorage.getItem('token');
-      if (!token) {
-        alert("Please log in first to run gap analysis.");
-        return;
-      }
-
       const btn = document.getElementById('runGapAnalysisBtn');
       btn.disabled = true;
       btn.textContent = '⏳ Analyzing with AI...';
@@ -2578,7 +2626,7 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
         const res = await fetch('/gap_analysis', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -2652,6 +2700,63 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
       } finally {
         btn.disabled = false;
         btn.textContent = '⚡ Run Gap Analysis';
+      }
+    }
+
+    // ── ATS ANALYSIS ──────────────────────────────────────────────────────────
+    async function runAtsAnalysis() {
+      const token = localStorage.getItem('token');
+      const btn = document.querySelector('#ats .analyze-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Analyzing ATS Compatibility...';
+
+      try {
+        const jdText = document.getElementById('atsJdDisplay').value;
+        
+        if (!appState.extractedText) {
+          alert("Please upload your Resume first via the Home page.");
+          return;
+        }
+
+        const res = await fetch('/ats', {
+          method: 'POST',
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            resume_text: appState.extractedText,
+            jd_text: jdText
+          })
+        });
+
+        if (!res.ok) throw new Error("ATS analysis failed.");
+
+        const data = await res.json();
+        const analysis = data.ats_analysis;
+
+        // Update Score
+        document.querySelector('#ats .score-big-num').innerHTML = `${analysis.overall_match_score}<span style="font-size:1.5rem;opacity:0.4">/100</span>`;
+        
+        // Update Grade Label
+        const gradeEl = document.querySelector('#ats .score-grade');
+        gradeEl.textContent = analysis.overall_match_score >= 80 ? 'Good ✓' : (analysis.overall_match_score >= 50 ? 'Average ⚠️' : 'Poor ❌');
+        gradeEl.style.color = analysis.overall_match_score >= 80 ? '#16a34a' : (analysis.overall_match_score >= 50 ? '#d97706' : '#dc2626');
+        gradeEl.style.background = analysis.overall_match_score >= 80 ? 'rgba(34, 197, 94, 0.2)' : (analysis.overall_match_score >= 50 ? 'rgba(217, 119, 6, 0.2)' : 'rgba(239, 68, 68, 0.2)');
+
+        // Update Keywords
+        let kwHtml = '';
+        if (analysis.matched_skills) analysis.matched_skills.forEach(kw => kwHtml += `<span class="kw-tag kw-found">${escHtml(kw)}</span>`);
+        if (analysis.missing_experience) analysis.missing_experience.forEach(kw => kwHtml += `<span class="kw-tag kw-miss">${escHtml(kw)}</span>`);
+        
+        document.querySelector('#ats .kw-grid').innerHTML = kwHtml || '<span class="kw-tag">No keywords extracted</span>';
+
+      } catch (err) {
+        console.error(err);
+        alert(`❌ Error: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Analyze Now';
       }
     }
   </script>

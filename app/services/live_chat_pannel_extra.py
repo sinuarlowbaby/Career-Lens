@@ -1,4 +1,4 @@
-from app.services.chat_service import call_qwen
+from app.services.chat_service import generate_ai_response
 
 
 async def chat_with_context(message: str, history: list):
@@ -11,4 +11,4 @@ async def chat_with_context(message: str, history: list):
     User: {message}
     """
 
-    return await call_qwen(prompt)
+    return await generate_ai_response(prompt)

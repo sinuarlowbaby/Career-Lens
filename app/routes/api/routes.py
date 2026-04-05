@@ -5,6 +5,8 @@ from app.services.auth_service import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 from app.services.gap_analyzer import analyze_gap_ai
+from app.services.ats_score import analyze_ats_ai
+from app.services.chat_service import generate_ai_response
 
 router = APIRouter()
 
@@ -12,21 +14,46 @@ class GapAnalysisRequest(BaseModel):
     resume_text: Optional[str] = None
     jd_text: Optional[str] = None
 
+class AtsRequest(BaseModel):
+    resume_text: Optional[str] = None
+    jd_text: Optional[str] = None
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    prompt: str
+    system: Optional[str] = "You are an AI career coach"
+    history: Optional[list[ChatMessage]] = []
+
 @router.get("/health")
 async def health_check():
     return {"status": "ok"}
 
 @router.post("/chat")
-async def chat():
-    return {"message": "Hello World"}
+async def chat(payload: ChatRequest):
+    try:
+        result = await generate_ai_response(payload.prompt, payload.system, payload.history)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/ats")
-async def ats():
-    return {"message": "Hello World"}
+async def ats(payload: AtsRequest = None, user: User = Depends(get_current_user)):
+    if payload and payload.resume_text and payload.jd_text:
+        result = await analyze_ats_ai(payload.resume_text, payload.jd_text)
+        return {"ats_analysis": result}
+        
+    raise HTTPException(status_code=400, detail="Please provide resume_text and jd_text in the payload.")
 
 @router.post("/interview")
-async def interview():
-    return {"message": "Hello World"}
+async def interview(payload: ChatRequest):
+    try:
+        result = await generate_ai_response(payload.prompt, payload.system, payload.history)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/gap_analysis")
 async def gap_analysis(payload: GapAnalysisRequest = None, user: User = Depends(get_current_user)):

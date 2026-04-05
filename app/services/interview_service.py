@@ -1,14 +1,16 @@
+import json
+import re
 from sqlalchemy.orm import Session
-from app.models import InterviewSession, Answer
+from app.db.models import Interview, QALog
 from app.services.chat_service import generate_ai_response
 
 
-def create_session(db: Session, user_id: int, role: str):
-    session = InterviewSession(user_id=user_id, role=role)
-    db.add(session)
+def create_session(db: Session, user_id: int, role: str = "General"):
+    interview = Interview(user_id=user_id)
+    db.add(interview)
     db.commit()
-    db.refresh(session)
-    return session
+    db.refresh(interview)
+    return interview
 
 
 async def generate_questions(role: str):
@@ -25,18 +27,25 @@ async def evaluate_answer(db: Session, session_id: int, answer: str):
 
     {answer}
 
-    Return:
-    - score (0-10)
-    - feedback
-    - improvements
+    Return ONLY valid JSON with exactly these keys:
+    {"score": 8, "feedback": "...", "improvements": "..."}
     """
 
     ai_result = await generate_ai_response(prompt)
+    ai_text = ai_result.get("response", "{}")
 
-    db_answer = Answer(
-        session_id=session_id,
-        answer=answer,
-        score=5  # replace after parsing AI response
+    try:
+        match = re.search(r"\{.*\}", ai_text, re.DOTALL)
+        parsed = json.loads(match.group(0)) if match else {}
+        score = float(parsed.get("score", 5.0))
+    except Exception:
+        score = 5.0
+
+    db_answer = QALog(
+        interview_id=session_id,
+        user_answer=answer,
+        ai_feedback=ai_text,
+        score=score
     )
     db.add(db_answer)
     db.commit()

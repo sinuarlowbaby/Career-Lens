@@ -72,8 +72,8 @@ def _extract_pdf(path: Path) -> str:
                 if page_text:
                     text_parts.append(page_text)
         return "\n".join(text_parts)
-    except ImportError:
-        logger.warning("[DocumentService] pdfplumber not installed — falling back to PyPDF2")
+    except Exception as e:
+        logger.warning(f"[DocumentService] pdfplumber failed ({e}) — falling back to PyPDF2")
         return _extract_pdf_fallback(path)
 
 
@@ -86,9 +86,9 @@ def _extract_pdf_fallback(path: Path) -> str:
             for page in reader.pages:
                 text_parts.append(page.extract_text() or "")
         return "\n".join(text_parts)
-    except ImportError:
+    except Exception as e:
         raise RuntimeError(
-            "No PDF library found. Install pdfplumber: pip install pdfplumber"
+            f"PDF extraction failed. Ensure PyPDF2 is installed: {e}"
         )
 
 
@@ -97,9 +97,9 @@ def _extract_docx(path: Path) -> str:
         from docx import Document
         doc = Document(str(path))
         return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-    except ImportError:
+    except Exception as e:
         raise RuntimeError(
-            "python-docx not installed. Run: pip install python-docx"
+            f"DOCX extraction failed: {e}"
         )
 
 
