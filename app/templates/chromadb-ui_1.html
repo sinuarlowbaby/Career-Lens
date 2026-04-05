@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChromaDB · CareerLens</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f9f9f8;
+  --white: #ffffff;
+  --border: #e8e8e6;
+  --border-dark: #d0d0cc;
+  --text: #1a1a18;
+  --text-2: #6b6b67;
+  --text-3: #a8a8a4;
+  --accent: #1a6b4a;
+  --accent-bg: #f0f9f4;
+  --accent-border: #b8ddc8;
+  --red: #c0392b;
+  --red-bg: #fdf2f1;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --radius: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+.layout { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar { width: 220px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+
+.sidebar-header { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); }
+.app-name { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text); letter-spacing: 0.02em; }
+.app-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+.conn-pill {
+  display: flex; align-items: center; gap: 6px; margin-top: 10px;
+  padding: 6px 8px; border-radius: var(--radius); font-size: 11px;
+  font-family: var(--mono); background: var(--bg); border: 1px solid var(--border);
+  cursor: pointer; transition: border-color 0.15s;
+}
+.conn-pill:hover { border-color: var(--border-dark); }
+.conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); flex-shrink: 0; }
+.conn-dot.live { background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+.conn-dot.err  { background: var(--red); }
+.conn-text { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sidebar-section { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); padding: 16px 16px 6px; }
+
+.nav-link {
+  display: flex; align-items: center; gap: 8px; padding: 7px 16px;
+  font-size: 13px; color: var(--text-2); cursor: pointer; transition: all 0.1s;
+  border-left: 2px solid transparent; user-select: none;
+}
+.nav-link:hover { color: var(--text); background: var(--bg); }
+.nav-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-bg); font-weight: 500; }
+.nav-icon { font-size: 13px; width: 16px; text-align: center; opacity: 0.65; }
+
+.coll-nav { flex: 1; overflow-y: auto; padding-bottom: 16px; }
+.coll-nav-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 16px 6px 24px;
+  font-size: 12px; color: var(--text-2); cursor: pointer; transition: all 0.1s;
+  border-left: 2px solid transparent;
+}
+.coll-nav-item:hover { color: var(--text); background: var(--bg); }
+.coll-nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-bg); }
+.coll-nav-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 11px; }
+.coll-nav-count { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+
+/* Main */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+  height: 48px; border-bottom: 1px solid var(--border); background: var(--white);
+  display: flex; align-items: center; padding: 0 24px; gap: 8px;
+  flex-shrink: 0; position: sticky; top: 0; z-index: 10;
+}
+.page-title { font-size: 14px; font-weight: 500; }
+.page-crumb { font-size: 12px; color: var(--text-3); }
+.topbar-right { margin-left: auto; display: flex; gap: 8px; }
+
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px;
+  border-radius: var(--radius); font-family: var(--sans); font-size: 12px;
+  font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+  background: var(--white); color: var(--text-2); transition: all 0.12s; white-space: nowrap;
+}
+.btn:hover { border-color: var(--border-dark); color: var(--text); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #155c3f; border-color: #155c3f; color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+/* Connect Banner */
+.connect-banner {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 36px; max-width: 400px; margin: 60px auto;
+}
+.connect-banner h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.connect-banner p { font-size: 12px; color: var(--text-2); margin-bottom: 20px; line-height: 1.6; }
+
+.field-group { margin-bottom: 12px; }
+.field-label { font-size: 10px; font-weight: 600; color: var(--text-3); margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.07em; }
+
+.input {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: var(--radius); font-family: var(--mono); font-size: 12px;
+  color: var(--text); background: var(--white); outline: none; transition: border-color 0.12s;
+}
+.input:focus { border-color: var(--accent); }
+
+.hint { font-size: 11px; color: var(--text-3); margin-top: 12px; font-family: var(--mono); line-height: 1.5; }
+
+/* Stats */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.stat-label { font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 600; color: var(--text); font-family: var(--mono); }
+.stat-value.sm { font-size: 15px; padding-top: 3px; }
+
+/* Collection grid */
+.coll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.coll-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; cursor: pointer; transition: all 0.15s;
+}
+.coll-card:hover { border-color: var(--accent-border); box-shadow: var(--shadow); }
+.coll-card.active { border-color: var(--accent); background: var(--accent-bg); }
+.coll-card-name { font-family: var(--mono); font-size: 13px; font-weight: 500; margin-bottom: 2px; word-break: break-all; }
+.coll-card-id { font-size: 10px; color: var(--text-3); font-family: var(--mono); margin-bottom: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coll-card-foot { display: flex; justify-content: space-between; align-items: flex-end; }
+.coll-count-big { font-size: 24px; font-weight: 600; font-family: var(--mono); }
+.coll-count-lbl { font-size: 10px; color: var(--text-3); }
+.coll-badge { font-size: 10px; font-family: var(--mono); padding: 2px 6px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--text-2); }
+
+/* Table */
+.table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.table-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.table-title { font-size: 13px; font-weight: 500; }
+.table-count { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+.table-actions { margin-left: auto; display: flex; gap: 8px; }
+
+.search-row { padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--bg); display: flex; gap: 8px; }
+.search-input {
+  flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius);
+  font-family: var(--sans); font-size: 12px; color: var(--text); background: var(--white);
+  outline: none; transition: border-color 0.12s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-3); }
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead tr { border-bottom: 1px solid var(--border); background: var(--bg); }
+th { padding: 8px 16px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.08s; cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+td { padding: 9px 16px; vertical-align: top; }
+
+.td-id { font-family: var(--mono); font-size: 11px; color: var(--text-2); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-doc { font-size: 12px; color: var(--text); max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-meta { display: flex; flex-wrap: wrap; gap: 3px; max-width: 180px; }
+.meta-tag { font-size: 10px; font-family: var(--mono); padding: 1px 5px; border-radius: 3px; background: var(--bg); border: 1px solid var(--border); color: var(--text-2); white-space: nowrap; }
+
+.table-footer { padding: 9px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-3); background: var(--bg); }
+
+/* Query */
+.query-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+.query-body { padding: 16px; border-bottom: 1px solid var(--border); }
+.query-row { display: flex; gap: 8px; align-items: center; padding: 10px 16px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--bg); }
+select.input { width: auto; cursor: pointer; }
+textarea.input { resize: vertical; min-height: 72px; line-height: 1.6; }
+
+.results-panel { padding: 16px; }
+.results-label { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; }
+.result-row { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; transition: border-color 0.1s; }
+.result-row:hover { border-color: var(--border-dark); }
+.result-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.result-rank { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.result-id { font-family: var(--mono); font-size: 10px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.result-score { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--accent); flex-shrink: 0; }
+.result-doc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+/* Detail panel */
+.detail-panel {
+  display: none; position: fixed; right: 0; top: 0; bottom: 0; width: 360px;
+  background: var(--white); border-left: 1px solid var(--border); z-index: 100;
+  flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.06);
+}
+.detail-panel.open { display: flex; }
+.detail-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.detail-id { font-family: var(--mono); font-size: 12px; font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.detail-body { flex: 1; overflow-y: auto; padding: 16px; }
+.detail-section { margin-bottom: 16px; }
+.detail-section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 6px; }
+.detail-value { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; font-size: 11px; color: var(--text); line-height: 1.6; word-break: break-word; font-family: var(--mono); white-space: pre-wrap; }
+
+/* Empty / loading */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-3); font-size: 12px; }
+.empty-state p { margin-top: 6px; }
+.loading-cell { text-align: center; color: var(--text-3); padding: 32px; font-size: 12px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px); background: var(--text); color: #fff; font-size: 12px; padding: 8px 16px; border-radius: 20px; opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border-dark); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.fade { animation: fadeUp 0.2s ease both; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="app-name">chromadb</div>
+      <div class="app-sub">CareerLens AI</div>
+      <div class="conn-pill" onclick="openConnect()" title="Configure connection">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span class="conn-text" id="conn-text">Not connected</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">Views</div>
+    <div class="nav-link active" onclick="showView('overview',this)">
+      <span class="nav-icon">◻</span> Overview
+    </div>
+    <div class="nav-link" onclick="showView('browse',this)">
+      <span class="nav-icon">≡</span> Browse
+    </div>
+    <div class="nav-link" onclick="showView('query',this)">
+      <span class="nav-icon">◎</span> Query
+    </div>
+
+    <div class="sidebar-section">Collections</div>
+    <div class="coll-nav" id="sidebar-colls">
+      <div style="padding:8px 16px;font-size:11px;color:var(--text-3)">—</div>
+    </div>
+
+    <div class="sidebar-footer" id="footer-ver"></div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <span class="page-title" id="topbar-title">Overview</span>
+      <span class="page-crumb" id="topbar-crumb"></span>
+      <div class="topbar-right">
+        <button class="btn btn-sm" onclick="refresh()">↺ Refresh</button>
+        <button class="btn btn-sm btn-primary" onclick="openConnect()">Connect</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div class="view active" id="view-overview">
+
+        <!-- Connect banner (shown when not connected) -->
+        <div id="connect-banner" class="connect-banner fade">
+          <h2>Connect to ChromaDB</h2>
+          <p>Point to your running ChromaDB server to view real collections and documents from CareerLens AI.</p>
+
+          <div class="field-group">
+            <label class="field-label">Host</label>
+            <input class="input" id="host-input" value="localhost" placeholder="localhost" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Port</label>
+            <input class="input" id="port-input" value="8001" placeholder="8001" />
+          </div>
+          <br>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="connect()">
+            Connect
+          </button>
+          <div id="conn-err" style="font-size:11px;color:var(--red);margin-top:10px;display:none"></div>
+          <div class="hint">Start server:<br><code>chroma run --path ./chroma_data --port 8001</code></div>
+        </div>
+
+        <!-- Dashboard (shown when connected) -->
+        <div id="dashboard" style="display:none">
+          <div class="stats-row fade">
+            <div class="stat">
+              <div class="stat-label">Collections</div>
+              <div class="stat-value" id="s-colls">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Total Documents</div>
+              <div class="stat-value" id="s-docs">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Server</div>
+              <div class="stat-value sm" id="s-host">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Version</div>
+              <div class="stat-value sm" id="s-ver">—</div>
+            </div>
+          </div>
+          <div class="coll-grid fade" id="coll-grid"></div>
+        </div>
+
+      </div>
+
+      <!-- BROWSE -->
+      <div class="view" id="view-browse">
+        <div id="browse-empty" class="empty-state">
+          <div>No collection selected.</div>
+          <p>Pick a collection from the sidebar or Overview.</p>
+        </div>
+
+        <div id="browse-table" style="display:none">
+          <div class="table-wrap fade">
+            <div class="table-header">
+              <span class="table-title" id="browse-title">Documents</span>
+              <span class="table-count" id="browse-count"></span>
+              <div class="table-actions">
+                <button class="btn btn-sm" onclick="exportColl()">↓ Export</button>
+              </div>
+            </div>
+            <div class="search-row">
+              <input class="search-input" placeholder="Search by ID or content…" oninput="filterDocs(this.value)" />
+            </div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Document</th>
+                    <th>Metadata</th>
+                  </tr>
+                </thead>
+                <tbody id="doc-tbody">
+                  <tr><td colspan="3" class="loading-cell"><span class="spinner"></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <span id="page-lbl">Page 1</span>
+              <button class="btn btn-sm" onclick="prevPage()">‹</button>
+              <button class="btn btn-sm" onclick="nextPage()">›</button>
+              <span id="total-lbl" style="margin-left:auto"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUERY -->
+      <div class="view" id="view-query">
+        <div class="query-card fade">
+          <div class="query-body">
+            <div class="field-group" style="margin-bottom:0">
+              <label class="field-label">Query Text</label>
+              <textarea class="input" id="q-text" placeholder="e.g. Python and machine learning experience"></textarea>
+            </div>
+          </div>
+          <div class="query-row">
+            <select class="input" id="q-coll" style="min-width:180px">
+              <option value="">Select collection…</option>
+            </select>
+            <select class="input" id="q-n" style="width:88px">
+              <option value="5">Top 5</option>
+              <option value="10">Top 10</option>
+              <option value="20">Top 20</option>
+            </select>
+            <button class="btn btn-primary" onclick="runQuery()">Search</button>
+            <button class="btn" onclick="clearQuery()">Clear</button>
+            <span style="font-size:11px;color:var(--text-3);margin-left:auto">cosine similarity</span>
+          </div>
+          <div id="q-results" style="display:none">
+            <div class="results-panel">
+              <div class="results-label" id="q-label">Results</div>
+              <div id="q-items"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-header">
+    <span class="detail-id" id="detail-id">—</span>
+    <button class="btn btn-sm" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="detail-body">
+    <div class="detail-section">
+      <div class="detail-section-title">Document</div>
+      <div class="detail-value" id="detail-doc">—</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Metadata</div>
+      <div class="detail-value" id="detail-meta">—</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Embedding</div>
+      <div class="detail-value" style="color:var(--text-3);font-size:11px">[embeddings not loaded — vectors are large]</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────
+const S = {
+  host: 'localhost', port: '8001',
+  connected: false, version: '',
+  collections: [],
+  activeColl: null,
+  docs: [], filtered: [],
+  page: 0, pageSize: 25,
+};
+
+// ── Boot ───────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('cl_chroma');
+  if (saved) {
+    try {
+      const { host, port } = JSON.parse(saved);
+      S.host = host; S.port = port;
+      document.getElementById('host-input').value = host;
+      document.getElementById('port-input').value = port;
+      connect(true);
+    } catch {}
+  }
+});
+
+// ── API ────────────────────────────────────────────────────────────
+// All calls go through the FastAPI proxy → no CORS issues
+const apiUrl = path => `/chroma-proxy/api/v2${path}`;
+
+async function apiGet(path) {
+  const r = await fetch(apiUrl(path));
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+async function apiPost(path, body) {
+  const r = await fetch(apiUrl(path), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+// ── Connect ────────────────────────────────────────────────────────
+async function connect(silent = false) {
+  S.host = document.getElementById('host-input').value.trim() || 'localhost';
+  S.port = document.getElementById('port-input').value.trim() || '8000';
+
+  const errEl = document.getElementById('conn-err');
+  errEl.style.display = 'none';
+  if (!silent) toast('Connecting…');
+
+  try {
+    S.version = await apiGet('/version');
+    S.connected = true;
+    localStorage.setItem('cl_chroma', JSON.stringify({ host: S.host, port: S.port }));
+    setConnUI(true);
+    await loadAll();
+    document.getElementById('connect-banner').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    if (!silent) toast('Connected');
+  } catch (e) {
+    S.connected = false;
+    setConnUI(false);
+    errEl.textContent = 'Could not reach server: ' + e.message;
+    errEl.style.display = 'block';
+    if (!silent) toast('Connection failed');
+  }
+}
+
+function setConnUI(ok) {
+  const dot = document.getElementById('conn-dot');
+  const txt = document.getElementById('conn-text');
+  dot.className = 'conn-dot' + (ok ? ' live' : ' err');
+  txt.textContent = ok ? `${S.host}:${S.port}` : 'Not connected';
+}
+
+function openConnect() {
+  showView('overview', document.querySelector('.nav-link'));
+  document.getElementById('connect-banner').style.display = 'block';
+  setTimeout(() => document.getElementById('host-input').focus(), 60);
+}
+
+// ── Load ──────────────────────────────────────────────────────────
+const API_BASE = '/tenants/default_tenant/databases/default_database';
+
+async function loadAll() {
+  const raw = await apiGet(`${API_BASE}/collections`);
+  S.collections = await Promise.all(raw.map(async (c) => {
+    let count = 0;
+    try { count = await apiGet(`${API_BASE}/collections/${c.id}/count`); } catch {}
+    return { ...c, count };
+  }));
+  renderStats();
+  renderSidebar();
+  renderGrid();
+  populateQuerySelect();
+}
+
+async function refresh() {
+  if (!S.connected) { openConnect(); return; }
+  toast('Refreshing…');
+  try {
+    await loadAll();
+    if (S.activeColl) await loadDocs(S.activeColl.id);
+    toast('Refreshed');
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+function renderStats() {
+  const total = S.collections.reduce((a, c) => a + (c.count || 0), 0);
+  setText('s-colls', S.collections.length);
+  setText('s-docs', total.toLocaleString());
+  setText('s-host', `${S.host}:${S.port}`);
+  setText('s-ver', S.version || '—');
+  setText('footer-ver', S.version ? `v${S.version}` : '');
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────
+function renderSidebar() {
+  const el = document.getElementById('sidebar-colls');
+  if (!S.collections.length) {
+    el.innerHTML = '<div style="padding:8px 16px;font-size:11px;color:var(--text-3)">No collections</div>';
+    return;
+  }
+  el.innerHTML = S.collections.map(c => `
+    <div class="coll-nav-item ${S.activeColl?.id === c.id ? 'active' : ''}" onclick="selectColl('${c.id}')">
+      <span class="coll-nav-name">${esc(c.name)}</span>
+      <span class="coll-nav-count">${(c.count || 0).toLocaleString()}</span>
+    </div>`).join('');
+}
+
+// ── Grid ──────────────────────────────────────────────────────────
+function renderGrid() {
+  const el = document.getElementById('coll-grid');
+  if (!S.collections.length) {
+    el.innerHTML = '<div class="empty-state">No collections found.</div>';
+    return;
+  }
+  el.innerHTML = S.collections.map(c => `
+    <div class="coll-card ${S.activeColl?.id === c.id ? 'active' : ''}" onclick="selectCollBrowse('${c.id}')">
+      <div class="coll-card-name">${esc(c.name)}</div>
+      <div class="coll-card-id">${esc(c.id)}</div>
+      <div class="coll-card-foot">
+        <div>
+          <div class="coll-count-big">${(c.count || 0).toLocaleString()}</div>
+          <div class="coll-count-lbl">documents</div>
+        </div>
+        <div class="coll-badge">${esc(c.metadata?.['hnsw:space'] || 'cosine')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Select + load docs ────────────────────────────────────────────
+async function selectColl(id) {
+  S.activeColl = S.collections.find(c => c.id === id) || null;
+  renderSidebar();
+  renderGrid();
+  await loadDocs(id);
+  showView('browse', null);
+}
+
+async function selectCollBrowse(id) { await selectColl(id); }
+
+async function loadDocs(id) {
+  document.getElementById('browse-empty').style.display = 'none';
+  document.getElementById('browse-table').style.display = 'block';
+  document.getElementById('browse-title').textContent = S.activeColl?.name || 'Documents';
+  setTbody('<tr><td colspan="3" class="loading-cell"><span class="spinner"></span></td></tr>');
+
+  try {
+    let allIds = [], allDocs = [], allMetas = [];
+    let offset = 0;
+    const batch = 500;
+    while (true) {
+      const data = await apiPost(`${API_BASE}/collections/${id}/get`, {
+        limit: batch, offset,
+        include: ['documents', 'metadatas']
+      });
+      const ids = data.ids || [];
+      if (!ids.length) break;
+      allIds = allIds.concat(ids);
+      allDocs = allDocs.concat(data.documents || []);
+      allMetas = allMetas.concat(data.metadatas || []);
+      if (ids.length < batch) break;
+      offset += batch;
+    }
+
+    S.docs = allIds.map((docId, i) => ({
+      id: docId,
+      document: allDocs[i] || '',
+      metadata: allMetas[i] || {}
+    }));
+    S.filtered = [...S.docs];
+    S.page = 0;
+    renderTable();
+  } catch (e) {
+    setTbody(`<tr><td colspan="3" class="loading-cell" style="color:var(--red)">Error: ${esc(e.message)}</td></tr>`);
+  }
+}
+
+// ── Table ─────────────────────────────────────────────────────────
+function renderTable() {
+  const start = S.page * S.pageSize;
+  const slice = S.filtered.slice(start, start + S.pageSize);
+  const pages = Math.max(1, Math.ceil(S.filtered.length / S.pageSize));
+
+  setText('browse-count', S.filtered.length.toLocaleString() + ' docs');
+  setText('page-lbl', `Page ${S.page + 1} of ${pages}`);
+  setText('total-lbl', S.docs.length.toLocaleString() + ' total');
+
+  if (!slice.length) {
+    setTbody('<tr><td colspan="3" class="loading-cell">No documents found.</td></tr>');
+    return;
+  }
+
+  setTbody(slice.map(d => {
+    const tags = Object.entries(d.metadata || {})
+      .map(([k, v]) => `<span class="meta-tag">${esc(k)}: ${esc(v)}</span>`).join('');
+    return `<tr onclick="openDetail('${esc(d.id)}')">
+      <td><div class="td-id" title="${esc(d.id)}">${esc(d.id)}</div></td>
+      <td><div class="td-doc" title="${esc(d.document)}">${esc(d.document) || '<span style="color:var(--text-3)">—</span>'}</div></td>
+      <td><div class="td-meta">${tags || '<span style="color:var(--text-3);font-size:10px">—</span>'}</div></td>
+    </tr>`;
+  }).join(''));
+}
+
+function setTbody(html) { document.getElementById('doc-tbody').innerHTML = html; }
+
+function filterDocs(q) {
+  q = q.toLowerCase();
+  S.filtered = !q ? [...S.docs] : S.docs.filter(d =>
+    d.id.toLowerCase().includes(q) || d.document.toLowerCase().includes(q)
+  );
+  S.page = 0;
+  renderTable();
+}
+
+function prevPage() { if (S.page > 0) { S.page--; renderTable(); } }
+function nextPage() {
+  if (S.page < Math.ceil(S.filtered.length / S.pageSize) - 1) { S.page++; renderTable(); }
+}
+
+// ── Detail panel ──────────────────────────────────────────────────
+function openDetail(id) {
+  const d = S.docs.find(x => x.id === id);
+  if (!d) return;
+  setText('detail-id', d.id);
+  document.getElementById('detail-doc').textContent = d.document || '—';
+  document.getElementById('detail-meta').textContent = JSON.stringify(d.metadata || {}, null, 2);
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() { document.getElementById('detail-panel').classList.remove('open'); }
+
+// ── Query ─────────────────────────────────────────────────────────
+function populateQuerySelect() {
+  const sel = document.getElementById('q-coll');
+  sel.innerHTML = '<option value="">Select collection…</option>' +
+    S.collections.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+}
+
+async function runQuery() {
+  const text = document.getElementById('q-text').value.trim();
+  const collId = document.getElementById('q-coll').value;
+  const n = parseInt(document.getElementById('q-n').value);
+
+  if (!text)   { toast('Enter query text'); return; }
+  if (!collId) { toast('Select a collection'); return; }
+  if (!S.connected) { toast('Not connected'); return; }
+
+  const wrap = document.getElementById('q-results');
+  const items = document.getElementById('q-items');
+  const label = document.getElementById('q-label');
+  wrap.style.display = 'block';
+  items.innerHTML = '<div style="padding:16px;text-align:center"><span class="spinner"></span></div>';
+
+  try {
+    const data = await apiPost(`${API_BASE}/collections/${collId}/query`, {
+      query_texts: [text], n_results: n,
+      include: ['documents', 'metadatas', 'distances']
+    });
+
+    const ids = data.ids?.[0] || [];
+    const docs = data.documents?.[0] || [];
+    const metas = data.metadatas?.[0] || [];
+    const dists = data.distances?.[0] || [];
+
+    label.textContent = `Results (${ids.length})`;
+
+    if (!ids.length) { items.innerHTML = '<div class="empty-state">No results.</div>'; return; }
+
+    items.innerHTML = ids.map((id, i) => {
+      const score = dists[i] != null ? (1 - dists[i]).toFixed(4) : '—';
+      const tags = Object.entries(metas[i] || {})
+        .map(([k, v]) => `<span class="meta-tag">${esc(k)}: ${esc(v)}</span>`).join('');
+      return `<div class="result-row">
+        <div class="result-top">
+          <div class="result-rank">${i + 1}</div>
+          <div class="result-id">${esc(id)}</div>
+          <div class="result-score">score ${score}</div>
+        </div>
+        <div class="result-doc">${esc(docs[i] || '')}</div>
+        ${tags ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:3px">${tags}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    items.innerHTML = `<div class="empty-state" style="color:var(--red)">${esc(e.message)}</div>`;
+  }
+}
+
+function clearQuery() {
+  document.getElementById('q-text').value = '';
+  document.getElementById('q-results').style.display = 'none';
+}
+
+// ── Export ────────────────────────────────────────────────────────
+function exportColl() {
+  if (!S.activeColl) return;
+  const payload = { collection: S.activeColl.name, exported_at: new Date().toISOString(), count: S.docs.length, documents: S.docs };
+  const a = document.createElement('a');
+  a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(payload, null, 2));
+  a.download = `${S.activeColl.name}.json`;
+  a.click();
+  toast('Exported');
+}
+
+// ── Navigation ────────────────────────────────────────────────────
+const LABELS = { overview: 'Overview', browse: 'Browse', query: 'Query' };
+
+function showView(name, clickedEl) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  if (clickedEl) clickedEl.classList.add('active');
+  else document.querySelectorAll('.nav-link').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(`'${name}'`)) n.classList.add('active');
+  });
+  setText('topbar-title', LABELS[name] || name);
+  setText('topbar-crumb', name === 'browse' && S.activeColl ? `/ ${S.activeColl.name}` : '');
+  if (name === 'browse' && !S.activeColl) {
+    document.getElementById('browse-empty').style.display = 'block';
+    document.getElementById('browse-table').style.display = 'none';
+  }
+  closeDetail();
+}
+
+// ── Util ──────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setText(id, val) { document.getElementById(id).textContent = val; }
+
+let _tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

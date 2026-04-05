@@ -21,3 +21,10 @@ env/
 
 # Logs
 *.log
+
+uploads
+vector_store
+.DS_Store
+chroma_data
+.python-version
+

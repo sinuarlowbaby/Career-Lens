@@ -418,11 +418,11 @@
     <div class="right-panel">
       <div class="auth-card">
 
-        <!-- Tab switcher -->
-        <div class="tab-row">
+        <!-- <div class="tab-row">
           <button class="tab-btn active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
           <button class="tab-btn"        id="tabSignUp" onclick="switchTab('signup')">Sign Up</button>
-        </div>
+        </div>Tab switcher -->
+        
 
         <!-- Dynamic heading -->
         <div class="card-title" id="cardTitle">Welcome back</div>
@@ -480,6 +480,53 @@
   </div>
 
   <script>
+const BACKEND = "http://localhost:8000";
+
+  // ── On page load: check if Google redirected back with a token ──────────────
+  (function checkToken() {
+    // After OAuth, your backend redirects to: /#access_token=<jwt>
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const token = hash.get("access_token") || localStorage.getItem("access_token");
+
+    if (token) {
+      localStorage.setItem("access_token", token);
+      // Clean the token out of the URL bar
+      history.replaceState(null, "", window.location.pathname);
+      showUserInfo(token);
+    }
+  })();
+
+  function showUserInfo(token) {
+    try {
+      // JWT payload is base64 – decode it to get the email without a server call
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      document.getElementById("login-btn").style.display = "none";
+      document.getElementById("user-info").style.display = "block";
+      document.getElementById("user-email").textContent = payload.email;
+    } catch {
+      localStorage.removeItem("access_token");
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem("access_token");
+    location.reload();
+  }
+
+  // ── Helper: attach token to any fetch call ─────────────────────────────────
+  // Usage: authedFetch("/ai/ask", { method: "POST", body: JSON.stringify({prompt: "..."}) })
+  async function authedFetch(path, options = {}) {
+    const token = localStorage.getItem("access_token");
+    return fetch(BACKEND + path, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  }
+
     /* ── TAB SWITCHER ── */
     let currentTab = 'signin';
 
@@ -536,8 +583,8 @@
             : '✓ Creating your account…'
         );
         // Replace with: window.location.href = 'index.html';
-        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
-      }, 1400);
+        setTimeout(() => { window.location.href = '/auth/login/google'; }, 120);
+      }, 1000);
     }
 
     /* ── MINI TOAST ── */
@@ -557,6 +604,7 @@
       document.body.appendChild(t);
       setTimeout(() => t.remove(), 3000);
     }
+
   </script>
 
 </body>

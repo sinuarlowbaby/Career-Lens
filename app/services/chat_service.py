@@ -1,16 +1,22 @@
-from app.llm.llm_client import call_llm_async
-from app.rag.query_pipeline import query_knowledge_base
+import httpx
+import os
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
 
 
-async def chat_with_ai(message: str):
-    context = query_knowledge_base(message)
+async def generate_ai_response(prompt: str, system: str = "You are an AI career coach"):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            OLLAMA_URL,
+            json={
+                "model": "qwen:3b",
+                "prompt": f"{system}\n\nUser: {prompt}\nAssistant:",
+                "stream": False
+            }
+        )
 
-    prompt = f"""
-    Context:
-    {context}
+    data = response.json()
 
-    User:
-    {message}
-    """
-
-    return await call_llm_async(prompt)
+    return {
+        "response": data.get("response", "")
+    }
