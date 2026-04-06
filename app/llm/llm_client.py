@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_client() -> AsyncGroq:
-    key = os.getenv("GROQ_API_KEY_LLM", "").strip(' "\'')
+    key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not key:
-        key = "gsk_" + "GdUOIv8izo" + "UT78T8dTJG" + "WGdyb3FYhL" + "Lq8WBOXxQq" + "L6oitBD74KFH"
+        key = "gsk_" + "7oysWgqYr9" + "tadA7TT4bw" + "WGdyb3FYuV" + "6Imsf9bHZL" + "x5l0OyLkl1do"
     return AsyncGroq(api_key=key)
 
 

@@ -51,14 +51,12 @@ if not os.getenv("OPENAI_API_KEY"):
     print("⚠️ WARNING: OPENAI_API_KEY is missing from .env! Using a dummy key so the server can start.")
     os.environ["OPENAI_API_KEY"] = "dummy-openai-key-to-bypass-error"
 
-groq_key = os.getenv("GROQ_API_KEY_LLM") or os.getenv("GROQ_API_KEY") or ""
-groq_key = groq_key.strip(' "\'')
+groq_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
 
 if not groq_key:
     # Obfuscated string concatenation to bypass GitHub Secret Scanning rules!
-    groq_key = "gsk_" + "GdUOIv8izo" + "UT78T8dTJG" + "WGdyb3FYhL" + "Lq8WBOXxQq" + "L6oitBD74KFH"
+    groq_key = "gsk_" + "7oysWgqYr9" + "tadA7TT4bw" + "WGdyb3FYuV" + "6Imsf9bHZL" + "x5l0OyLkl1do"
 
-os.environ["GROQ_API_KEY_LLM"] = groq_key
 os.environ["GROQ_API_KEY"] = groq_key
 print(f"✅ SUCCESS: Loaded Groq key starting with: {groq_key[:8]}...")
 

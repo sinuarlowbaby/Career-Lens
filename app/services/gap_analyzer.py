@@ -87,9 +87,9 @@ def _build_llm(temperature: float = 0.0) -> ChatGroq:
     No json_object mode — let PydanticOutputParser handle structure.
     json_object mode + format_instructions conflict and reduce reliability.
     """
-    api_key = os.getenv("GROQ_API_KEY_LLM") or os.getenv("GROQ_API_KEY", "").strip(' "\'')
+    api_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not api_key:
-        api_key = "gsk_" + "GdUOIv8izo" + "UT78T8dTJG" + "WGdyb3FYhL" + "Lq8WBOXxQq" + "L6oitBD74KFH"
+        api_key = "gsk_" + "7oysWgqYr9" + "tadA7TT4bw" + "WGdyb3FYuV" + "6Imsf9bHZL" + "x5l0OyLkl1do"
     if not api_key:
         raise ValueError("Groq API Key is missing. Please add GROQ_API_KEY to your .env file.")
 

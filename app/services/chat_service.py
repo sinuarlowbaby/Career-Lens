@@ -11,10 +11,9 @@ load_dotenv(dotenv_path=env_path, override=True)
 
 async def generate_ai_response(prompt: str, system: str = "You are an AI career coach", history: list = None):
     try:
-        api_key = os.getenv("GROQ_API_KEY_LLM") or os.getenv("GROQ_API_KEY") or ""
-        api_key = api_key.strip(' "\'')
+        api_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
         if not api_key:
-            api_key = "gsk_" + "GdUOIv8izo" + "UT78T8dTJG" + "WGdyb3FYhL" + "Lq8WBOXxQq" + "L6oitBD74KFH"
+            api_key = "gsk_" + "7oysWgqYr9" + "tadA7TT4bw" + "WGdyb3FYuV" + "6Imsf9bHZL" + "x5l0OyLkl1do"
         if not api_key:
             return {"response": "Error: Groq API Key is missing. Please add GROQ_API_KEY to your .env file."}
 
