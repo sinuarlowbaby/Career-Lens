@@ -2,25 +2,25 @@
 import sys
 import subprocess
 
-def _ensure_deps():
-    reqs = {
-        "multipart": "python-multipart",
-        "pdfplumber": "pdfplumber",
-        "docx": "python-docx",
-        "PyPDF2": "PyPDF2"
-    }
-    missing = []
-    for mod, pkg in reqs.items():
-        try:
-            __import__(mod)
-        except ImportError:
-            missing.append(pkg)
-    if missing:
-        print(f"📦 Auto-installing missing packages: {', '.join(missing)}...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", *missing])
-        print("✅ Packages successfully installed!")
+# def _ensure_deps():
+#     reqs = {
+#         "multipart": "python-multipart",
+#         "pdfplumber": "pdfplumber",
+#         "docx": "python-docx",
+#         "PyPDF2": "PyPDF2"
+#     }
+#     missing = []
+#     for mod, pkg in reqs.items():
+#         try:
+#             __import__(mod)
+#         except ImportError:
+#             missing.append(pkg)
+#     if missing:
+#         print(f"📦 Auto-installing missing packages: {', '.join(missing)}...")
+#         subprocess.check_call([sys.executable, "-m pip install", *missing])
+#         print("✅ Packages successfully installed!")
 
-_ensure_deps()
+# _ensure_deps()
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
