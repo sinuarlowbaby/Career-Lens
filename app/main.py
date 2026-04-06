@@ -47,18 +47,13 @@ if not os.getenv("OPENAI_API_KEY"):
     print("⚠️ WARNING: OPENAI_API_KEY is missing from .env! Using a dummy key so the server can start.")
     os.environ["OPENAI_API_KEY"] = "sk-dummy-key-to-bypass-error"
 
-# Hardcoded fallback key provided by the user to ensure 100% reliability
-WORKING_GROQ_KEY = "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"
-
 groq_key = os.getenv("GROQ_API_KEY_LLM") or os.getenv("GROQ_API_KEY") or ""
 groq_key = groq_key.strip(' "\'')
 
-if not groq_key.startswith("gsk_"):
-    groq_key = WORKING_GROQ_KEY
-
 os.environ["GROQ_API_KEY_LLM"] = groq_key
 os.environ["GROQ_API_KEY"] = groq_key
-print(f"✅ SUCCESS: Loaded real Groq key starting with: {groq_key[:8]}...")
+if groq_key:
+    print(f"✅ SUCCESS: Loaded real Groq key starting with: {groq_key[:8]}...")
 
 # ── Auto-Start ChromaDB ───────────────────────────────────────────────────────
 import socket
