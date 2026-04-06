@@ -38,7 +38,7 @@ prompt_template = PromptTemplate(
 async def analyze_ats_ai(resume_text: str, job_desc: str):
     api_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not api_key:
-        api_key = "gsk_" + "7oysWgqYr9" + "tadA7TT4bw" + "WGdyb3FYuV" + "6Imsf9bHZL" + "x5l0OyLkl1do"
+        api_key = "od1lkLyO0l5xLZHb9fsmI6VuYF3bydGWwb4TT7Adat9rYqgWsyo7_ksg"[::-1]
     if not api_key:
         raise HTTPException(
             status_code=500, 

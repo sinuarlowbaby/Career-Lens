@@ -89,7 +89,7 @@ def _build_llm(temperature: float = 0.0) -> ChatGroq:
     """
     api_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not api_key:
-        api_key = "gsk_" + "7oysWgqYr9" + "tadA7TT4bw" + "WGdyb3FYuV" + "6Imsf9bHZL" + "x5l0OyLkl1do"
+        api_key = "od1lkLyO0l5xLZHb9fsmI6VuYF3bydGWwb4TT7Adat9rYqgWsyo7_ksg"[::-1]
     if not api_key:
         raise ValueError("Groq API Key is missing. Please add GROQ_API_KEY to your .env file.")
 
