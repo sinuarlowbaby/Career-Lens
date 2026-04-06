@@ -58,4 +58,3 @@ async def embed_docs(
         jd_id=jd.id
     )
     return EmbedResponse(status="success", message=f"Successfully processed {result['chunks_stored']} chunks.") 
-

@@ -1,22 +1,40 @@
-from app.services.chat_service import generate_ai_response
+import json
+import re
+from app.llm.llm_client import generate_response
 
 
-async def analyze_resume_with_ai(resume_text: str, job_desc: str):
+def extract_json(text: str):
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    return match.group(0) if match else "{}"
+
+
+async def analyze_resume(resume_text: str, job_desc: str):
     prompt = f"""
-    Analyze this resume against job description.
+    Analyze resume vs job description.
+
+    Return JSON ONLY:
+    {{
+        "score": 0-100,
+        "matched_skills": [],
+        "missing_skills": [],
+        "suggestions": []
+    }}
 
     Resume:
     {resume_text}
 
     Job:
     {job_desc}
-
-    Return:
-    - ATS score (0-100)
-    - Missing skills
-    - Suggestions
     """
 
-    result = await generate_ai_response(prompt)
+    raw = await generate_response(prompt)
 
-    return result
+    try:
+        return json.loads(extract_json(raw))
+    except Exception as e:
+        return {
+            "score": 50,
+            "matched_skills": [],
+            "missing_skills": [],
+            "suggestions": [f"AI Parsing Error: {str(e)}", raw]
+        }

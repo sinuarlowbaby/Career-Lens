@@ -1,14 +1,18 @@
 from pydantic import BaseModel
 
-class UserCreate(BaseModel):
-    email: str
-    name: str
-    google_id: str
 
-class UserResponse(BaseModel):
+class UserOut(BaseModel):
     id: int
     email: str
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class ResumeOut(BaseModel):
+    id: int
+    content: str
+
+    class Config:
+        from_attributes = True
