@@ -1614,57 +1614,227 @@
       line-height: 1.45;
     }
 
+    /* ── MOCK INTERVIEW — PRODUCTION UI ─────────────────────────────────────── */
+
+    /* Setup Panel */
+    .iv-setup { display: flex; flex-direction: column; gap: 28px; }
+    .iv-setup-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .iv-group-label {
+      font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.9rem;
+      color: var(--text-dark); margin-bottom: 12px;
+    }
+    .iv-topic-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .iv-topic-btn {
+      background: rgba(255,255,255,0.55); border: 1.5px solid rgba(255,255,255,0.75);
+      border-radius: var(--radius); padding: 10px 18px; font-size: 0.85rem;
+      font-weight: 500; color: var(--text-mid); cursor: pointer;
+      transition: all 0.2s; backdrop-filter: blur(8px);
+    }
+    .iv-topic-btn:hover { background: rgba(255,255,255,0.85); color: var(--text-dark); }
+    .iv-topic-btn.active {
+      background: #0f0e0d; color: #fff; border-color: #0f0e0d;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    }
+    .iv-diff-row { display: flex; gap: 10px; }
+    .iv-diff-btn {
+      flex: 1; background: rgba(255,255,255,0.55); border: 1.5px solid rgba(255,255,255,0.75);
+      border-radius: 14px; padding: 14px 10px; font-family: 'Sora', sans-serif; font-size: 0.82rem;
+      font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .iv-diff-btn .diff-emoji { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+    .iv-diff-btn.easy.active  { background: rgba(34,197,94,0.15);  border-color: #22c55e; color: #15803d; }
+    .iv-diff-btn.medium.active{ background: rgba(245,200,66,0.2);  border-color: #e0a820; color: #92400e; }
+    .iv-diff-btn.hard.active  { background: rgba(239,68,68,0.12);  border-color: #ef4444; color: #dc2626; }
+    .iv-start-btn {
+      width: 100%; background: #0f0e0d; color: #fff; border: none;
+      border-radius: var(--radius); padding: 16px; font-family: 'Sora', sans-serif;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.22s;
+      letter-spacing: -0.2px; margin-top: 8px;
+    }
+    .iv-start-btn:hover:not(:disabled) {
+      background: #2a2825; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .iv-start-btn:disabled { background: rgba(0,0,0,0.18); color: rgba(0,0,0,0.38); cursor: not-allowed; }
+
+    /* Active Interview Panel */
+    .iv-panel { display: none; flex-direction: column; gap: 20px; }
+    .iv-panel.visible { display: flex; }
+
+    /* Progress bar */
+    .iv-progress-bar {
+      background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 16px; padding: 14px 20px;
+      display: flex; align-items: center; gap: 14px;
+      backdrop-filter: blur(12px);
+    }
+    .iv-progress-label { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.88rem; color: var(--text-dark); flex-shrink: 0; }
+    .iv-progress-track { flex: 1; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; overflow: hidden; }
+    .iv-progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#b8a9f0,#7c6fd4); transition: width 0.5s ease; }
+    .iv-difficulty-badge {
+      border-radius: var(--radius); padding: 5px 14px; font-size: 0.76rem; font-weight: 700;
+    }
+    .iv-difficulty-badge.easy   { background: rgba(34,197,94,0.15); color: #15803d; }
+    .iv-difficulty-badge.medium { background: rgba(245,200,66,0.2); color: #92400e; }
+    .iv-difficulty-badge.hard   { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+    /* Question card */
+    .iv-question-card {
+      background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.9);
+      border-radius: var(--radius-card); padding: 28px 32px;
+      backdrop-filter: blur(16px); box-shadow: 0 6px 28px rgba(0,0,0,0.08);
+    }
+    .iv-followup-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(124,111,212,0.15); border: 1px solid rgba(124,111,212,0.3);
+      border-radius: var(--radius); padding: 4px 12px;
+      font-size: 0.75rem; font-weight: 700; color: #5b4fcf;
+      margin-bottom: 14px;
+    }
+    .iv-q-number { font-size: 0.77rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .iv-q-text {
+      font-family: 'Sora', sans-serif; font-size: 1.1rem; font-weight: 600;
+      color: var(--text-dark); line-height: 1.55;
+    }
+    .iv-q-category { font-size: 0.76rem; color: var(--text-muted); margin-top: 10px; }
+
+    /* Answer area */
+    .iv-answer-panel { display: flex; flex-direction: column; gap: 12px; }
+    .iv-answer-textarea {
+      width: 100%; min-height: 140px; background: rgba(255,255,255,0.6);
+      border: 1.5px solid rgba(0,0,0,0.1); border-radius: 18px;
+      padding: 16px 18px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      color: var(--text-dark); resize: vertical; outline: none; line-height: 1.65;
+      transition: border 0.2s;
+    }
+    .iv-answer-textarea:focus { border-color: var(--accent-yellow); background: rgba(255,255,255,0.85); }
+    .iv-answer-textarea:disabled { opacity: 0.6; cursor: not-allowed; }
+    .iv-btn-row { display: flex; gap: 12px; }
+    .iv-submit-btn {
+      flex: 1; background: #0f0e0d; color: #fff; border: none;
+      border-radius: var(--radius); padding: 14px 20px;
+      font-family: 'Sora', sans-serif; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .iv-submit-btn:hover:not(:disabled) { background: #2a2825; transform: translateY(-1px); }
+    .iv-submit-btn:disabled { background: rgba(0,0,0,0.18); cursor: not-allowed; color: rgba(0,0,0,0.38); }
+    .iv-end-btn {
+      background: transparent; color: var(--text-muted); border: 1.5px solid rgba(0,0,0,0.12);
+      border-radius: var(--radius); padding: 14px 20px;
+      font-family: 'Sora', sans-serif; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .iv-end-btn:hover { border-color: #dc2626; color: #dc2626; background: rgba(239,68,68,0.06); }
+
+    /* Evaluation panel */
+    .iv-eval-panel {
+      display: none; background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.9); border-radius: var(--radius-card);
+      padding: 24px 28px; backdrop-filter: blur(14px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07); animation: fadeUp 0.4s ease both;
+    }
+    .iv-eval-panel.visible { display: block; }
+    .iv-eval-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .iv-score-ring {
+      width: 70px; height: 70px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-family: 'Sora', sans-serif; font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .iv-eval-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1rem; color: var(--text-dark); }
+    .iv-eval-feedback { font-size: 0.86rem; color: var(--text-mid); line-height: 1.6; margin-top: 3px; }
+    .iv-eval-section { margin-top: 16px; }
+    .iv-eval-section-title {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .iv-strength-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .iv-strength-pill {
+      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);
+      border-radius: var(--radius); padding: 5px 13px; font-size: 0.8rem;
+      color: #15803d; font-weight: 500;
+    }
+    .iv-improvement-list { display: flex; flex-direction: column; gap: 7px; }
+    .iv-improvement-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      font-size: 0.83rem; color: var(--text-mid); line-height: 1.5;
+    }
+    .iv-improvement-item::before { content: '⚠️'; flex-shrink: 0; font-size: 0.8rem; margin-top: 1px; }
+    .iv-hint-toggle {
+      background: none; border: none; font-family: 'Sora', sans-serif;
+      font-size: 0.8rem; font-weight: 700; color: #7c6fd4;
+      cursor: pointer; margin-top: 12px; text-decoration: underline;
+      text-underline-offset: 2px; padding: 0;
+    }
+    .iv-hint-text {
+      display: none; font-size: 0.83rem; color: var(--text-mid); line-height: 1.6;
+      background: rgba(124,111,212,0.07); border-radius: 12px; padding: 12px 14px;
+      margin-top: 8px; border: 1px solid rgba(124,111,212,0.15);
+    }
+    .iv-hint-text.visible { display: block; }
+    .iv-next-btn {
+      width: 100%; background: linear-gradient(135deg,#b8a9f0,#7c6fd4);
+      color: #fff; border: none; border-radius: var(--radius);
+      padding: 14px; font-family: 'Sora', sans-serif;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer;
+      transition: all 0.22s; margin-top: 16px; letter-spacing: -0.2px;
+    }
+    .iv-next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,111,212,0.35); }
+    .iv-next-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Final Results Panel */
+    .iv-results-panel {
+      display: none; flex-direction: column; gap: 22px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .iv-results-panel.visible { display: flex; }
+    .iv-final-header {
+      background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.9);
+      border-radius: var(--radius-card); padding: 32px; text-align: center;
+      backdrop-filter: blur(16px);
+    }
+    .iv-final-score-ring {
+      width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Sora', sans-serif;
+    }
+    .iv-final-score-num { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .iv-final-score-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .iv-final-title { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .iv-final-sub { font-size: 0.9rem; color: var(--text-muted); }
+    .iv-breakdown-table {
+      width: 100%; border-collapse: collapse; font-size: 0.83rem;
+    }
+    .iv-breakdown-table th {
+      text-align: left; padding: 10px 14px; font-weight: 700; font-size: 0.76rem;
+      text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    .iv-breakdown-table td {
+      padding: 12px 14px; vertical-align: top; border-bottom: 1px solid rgba(0,0,0,0.05);
+      color: var(--text-mid); line-height: 1.5;
+    }
+    .iv-breakdown-score {
+      font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1rem;
+    }
+    .iv-new-session-btn {
+      width: 100%; background: #0f0e0d; color: #fff; border: none;
+      border-radius: var(--radius); padding: 16px; font-family: 'Sora', sans-serif;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.22s;
+    }
+    .iv-new-session-btn:hover { background: #2a2825; transform: translateY(-2px); }
+
     /* Responsive */
     @media (max-width: 900px) {
-      nav {
-        padding: 14px 20px;
-      }
-
-      .nav-pills {
-        gap: 2px;
-      }
-
-      .nav-pills button {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-      }
-
-      .dash-wrap,
-      .interview-wrap,
-      .ats-wrap,
-      .gap-wrap {
-        padding: 32px 20px 60px;
-      }
-
-      .upload-row {
-        grid-template-columns: 1fr;
-      }
-
-      .two-col,
-      .ats-grid,
-      .gap-grid,
-      .gap-results {
-        grid-template-columns: 1fr;
-      }
-
-      .upload-card {
-        padding: 22px 18px 20px;
-      }
-
-      .upload-overlay {
-        align-items: flex-end;
-        padding: 0;
-      }
-
-      .upload-card {
-        border-radius: 24px 24px 0 0;
-        max-width: 100%;
-        transform: translateY(100%);
-      }
-
-      .upload-overlay.open .upload-card {
-        transform: translateY(0);
-      }
+      nav { padding: 14px 20px; }
+      .nav-pills { gap: 2px; }
+      .nav-pills button { padding: 8px 12px; font-size: 0.8rem; }
+      .dash-wrap, .interview-wrap, .ats-wrap, .gap-wrap { padding: 32px 20px 60px; }
+      .upload-row { grid-template-columns: 1fr; }
+      .two-col, .ats-grid, .gap-grid, .gap-results, .iv-setup-row { grid-template-columns: 1fr; }
+      .upload-card { padding: 22px 18px 20px; }
+      .upload-overlay { align-items: flex-end; padding: 0; }
+      .upload-card { border-radius: 24px 24px 0 0; max-width: 100%; transform: translateY(100%); }
+      .upload-overlay.open .upload-card { transform: translateY(0); }
     }
   </style>
 </head>
@@ -1922,7 +2092,7 @@
         <div class="section-header">
           <div>
             <div class="section-title">Mock Interview</div>
-            <div class="section-sub">AI interviewer trained on real interview patterns from top companies</div>
+            <div class="section-sub">AI interviewer — questions tailored to your resume &amp; target role</div>
           </div>
         </div>
 
@@ -1932,72 +2102,134 @@
             <div class="ctx-bar-icon">🎤</div>
             <div class="ctx-no-text">
               <div class="ctx-no-title">No documents uploaded</div>
-              <div class="ctx-no-sub">Upload your resume &amp; JD so questions are tailored to your profile and target
-                role</div>
+              <div class="ctx-no-sub">Upload your resume &amp; JD so questions are tailored to your profile and target role</div>
             </div>
             <button class="ctx-go-btn" onclick="goUpload()">Upload Now →</button>
           </div>
         </div>
-        <!--<div class="topic-row">
-          <button class="topic-btn active">🧠 Behavioural</button>
-          <button class="topic-btn">⚙️ System Design</button>
-          <button class="topic-btn">🐍 Python / DSA</button>
-          <button class="topic-btn">🤖 ML / AI</button>
-          <button class="topic-btn">🗄️ SQL &amp; Databases</button>
-          <button class="topic-btn">📦 FastAPI / Backend</button>
-        </div>            <div class="status-badge">⏱ 00:04:32</div>
- Context bar -->
 
+        <!-- ── SETUP PANEL ─────────────────────────────── -->
+        <div id="ivSetupPanel" class="iv-setup glass-panel">
 
-        <div class="chat-window">
-          <div class="chat-header">
-            <div class="avatar">🤖</div>
+          <div class="iv-setup-row">
+            <!-- Topic -->
             <div>
-              <div class="chat-name">CareerLens Interviewer</div>
-              <div class="chat-status">● Online — Behavioural Round</div>
-            </div>
-          </div>
-          <div class="chat-body" id="chatBody">
-            <div class="msg ai">
-              <div class="msg-avatar">🤖</div>
-              <div>
-                <div class="msg-bubble">
-                  Hello! I'm your AI interviewer today. Let's start with a behavioural round.<br><br>
-                  <strong>Question 1:</strong> Tell me about a time when you had to learn a new technology quickly under
-                  pressure. What was your approach and what was the outcome?
-                  Hello! I'm your versatile AI Career Coach and Interviewer. I can help you prepare for roles in <strong>Programming, Finance, Science, Architecture</strong>, and more!<br><br>
-                  If you've uploaded your resume, we can jump right into a mock interview. Otherwise, just tell me what domain you'd like to practice, or feel free to ask me any career-related questions!
-                </div>
-                <div class="q-chips" style="margin-top:10px">
-                  <span class="q-chip" onclick="chipClick(this)">💡 Give me a hint</span>
-                  <span class="q-chip" onclick="chipClick(this)">🔄 Skip question</span>
-                  <span class="q-chip" onclick="chipClick(this)">📝 View STAR framework</span>
-                </div>
+              <div class="iv-group-label">1. Choose a Topic</div>
+              <div class="iv-topic-grid">
+                <button class="iv-topic-btn" onclick="ivSelectTopic(this, 'Behavioural')">🧠 Behavioural</button>
+                <button class="iv-topic-btn" onclick="ivSelectTopic(this, 'System Design')">⚙️ System Design</button>
+                <button class="iv-topic-btn" onclick="ivSelectTopic(this, 'DSA &amp; Python')">🐍 DSA &amp; Python</button>
+                <button class="iv-topic-btn" onclick="ivSelectTopic(this, 'ML &amp; AI')">🤖 ML &amp; AI</button>
+                <button class="iv-topic-btn" onclick="ivSelectTopic(this, 'Backend &amp; SQL')">🗄️ Backend &amp; SQL</button>
               </div>
             </div>
-            <div class="msg user">
-              <div class="msg-avatar">👤</div>
-              <div class="msg-bubble">During my MCA project, I had to integrate FAISS with a FastAPI backend in just 3
-                days for a RAG system demo. I broke it into daily milestones, read docs intensively, and shipped a
-                working prototype with hybrid BM25 + vector search on time.</div>
-            </div>
-            <div class="msg ai">
-              <div class="msg-avatar">🤖</div>
-              <div class="msg-bubble">
-                Excellent response! You used the STAR format effectively.<br><br>
-                ✅ <strong>Strengths:</strong> Clear situation, measurable outcome, technical depth<br>
-                ⚠️ <strong>Improve:</strong> Mention team collaboration or blockers you overcame<br><br>
-                <strong>Question 2:</strong> Describe a situation where you disagreed with a technical decision. How did
-                you handle it?
+
+            <!-- Difficulty -->
+            <div>
+              <div class="iv-group-label">2. Select Difficulty</div>
+              <div class="iv-diff-row">
+                <button class="iv-diff-btn easy" onclick="ivSelectDifficulty(this, 'easy')">
+                  <span class="diff-emoji">🟢</span>Easy
+                </button>
+                <button class="iv-diff-btn medium" onclick="ivSelectDifficulty(this, 'medium')">
+                  <span class="diff-emoji">🟡</span>Medium
+                </button>
+                <button class="iv-diff-btn hard" onclick="ivSelectDifficulty(this, 'hard')">
+                  <span class="diff-emoji">🔴</span>Hard
+                </button>
               </div>
             </div>
           </div>
-          <div class="chat-footer">
-            <input class="chat-input" id="chatInput" type="text" placeholder="Type your answer..."
-              onkeydown="if(event.key==='Enter')sendMsg()" />
-            <button class="chat-send" onclick="sendMsg()">➤</button>
-          </div>
+
+          <button class="iv-start-btn" id="ivStartBtn" onclick="ivStartSession()" disabled>
+            ⏳ Select a topic &amp; difficulty to start
+          </button>
         </div>
+
+        <!-- ── ACTIVE INTERVIEW PANEL ─────────────────── -->
+        <div id="ivPanel" class="iv-panel">
+
+          <!-- Progress bar -->
+          <div class="iv-progress-bar">
+            <div class="iv-progress-label" id="ivProgressLabel">Question 1 of 5</div>
+            <div class="iv-progress-track">
+              <div class="iv-progress-fill" id="ivProgressFill" style="width:20%"></div>
+            </div>
+            <div class="iv-difficulty-badge medium" id="ivDiffBadge">Medium</div>
+          </div>
+
+          <!-- Question card -->
+          <div class="iv-question-card" id="ivQuestionCard">
+            <div id="ivFollowupBadge" class="iv-followup-badge" style="display:none">
+              🔗 Follow-up on your previous answer
+            </div>
+            <div class="iv-q-number" id="ivQNumber">QUESTION 1</div>
+            <div class="iv-q-text" id="ivQText">Loading question...</div>
+            <div class="iv-q-category" id="ivQCategory"></div>
+          </div>
+
+          <!-- Answer area -->
+          <div class="iv-answer-panel">
+            <textarea class="iv-answer-textarea" id="ivAnswerTextarea"
+              placeholder="Type your answer here... Take your time and be specific."></textarea>
+            <div class="iv-btn-row">
+              <button class="iv-submit-btn" id="ivSubmitBtn" onclick="ivSubmitAnswer()">✔ Submit Answer</button>
+              <button class="iv-end-btn" id="ivEndBtn" onclick="ivEndSession()">End Interview</button>
+            </div>
+          </div>
+
+          <!-- Evaluation panel (revealed after submit) -->
+          <div class="iv-eval-panel" id="ivEvalPanel">
+            <div class="iv-eval-header">
+              <div class="iv-score-ring" id="ivScoreRing">
+                <span id="ivScoreNum"></span>
+              </div>
+              <div>
+                <div class="iv-eval-title" id="ivEvalTitle">Answer Evaluated</div>
+                <div class="iv-eval-feedback" id="ivEvalFeedback"></div>
+              </div>
+            </div>
+            <div class="iv-eval-section">
+              <div class="iv-eval-section-title">✅ Strengths</div>
+              <div class="iv-strength-pills" id="ivStrengths"></div>
+            </div>
+            <div class="iv-eval-section">
+              <div class="iv-eval-section-title">⚠️ Improvements</div>
+              <div class="iv-improvement-list" id="ivImprovements"></div>
+            </div>
+            <button class="iv-hint-toggle" onclick="ivToggleHint(this)">💡 Show ideal answer hint</button>
+            <div class="iv-hint-text" id="ivHintText"></div>
+            <button class="iv-next-btn" id="ivNextBtn" onclick="ivNextQuestion()">Next Question →</button>
+          </div>
+
+        </div>
+
+        <!-- ── FINAL RESULTS PANEL ───────────────────── -->
+        <div id="ivResultsPanel" class="iv-results-panel">
+          <div class="iv-final-header">
+            <div class="iv-final-score-ring" id="ivFinalScoreRing">
+              <div style="text-align:center">
+                <div class="iv-final-score-num" id="ivFinalScoreNum">—</div>
+                <div class="iv-final-score-label">/ 10</div>
+              </div>
+            </div>
+            <div class="iv-final-title" id="ivFinalTitle">Interview Complete!</div>
+            <div class="iv-final-sub" id="ivFinalSub"></div>
+          </div>
+          <div class="glass-panel">
+            <div class="panel-title">Per-Question Breakdown</div>
+            <table class="iv-breakdown-table" id="ivBreakdownTable">
+              <thead>
+                <tr>
+                  <th>#</th><th>Question</th><th>Score</th><th>Key Improvement</th>
+                </tr>
+              </thead>
+              <tbody id="ivBreakdownBody"></tbody>
+            </table>
+          </div>
+          <button class="iv-new-session-btn" onclick="ivReset()">🔄 Start New Interview</button>
+        </div>
+
       </div>
     </div>
 
@@ -2536,76 +2768,288 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
       body.scrollTop = body.scrollHeight;
     }
 
-    async function sendMsg() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
-      const body = document.getElementById('chatBody');
-      const userMsg = document.createElement('div');
-      userMsg.className = 'msg user';
-      userMsg.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-bubble">${escHtml(text)}</div>`;
-      body.appendChild(userMsg);
-      input.value = '';
-      body.scrollTop = body.scrollHeight;
-      
-      const aiMsg = document.createElement('div');
-      aiMsg.className = 'msg ai';
-      aiMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">Thinking... 💭</div>`;
-      body.appendChild(aiMsg);
-      body.scrollTop = body.scrollHeight;
+    // ── MOCK INTERVIEW ENGINE ────────────────────────────────────────────────
+    const ivState = {
+      sessionId: null,
+      topic: null,
+      difficulty: null,
+      questionNumber: 1,
+      totalQuestions: 5,
+      currentQuestion: '',
+      isSubmitting: false,
+      isLoadingNext: false,
+    };
 
-      if (!appState.chatHistory) {
-        // Initialize memory so AI knows what it said first
-        appState.chatHistory = [{
-          role: "assistant", 
-          content: "Hello! I'm your versatile AI Career Coach and Interviewer. I can help you prepare for roles in Programming, Finance, Science, Architecture, and more! If you've uploaded your resume, we can jump right into a mock interview. Otherwise, just tell me what domain you'd like to practice, or feel free to ask me any career-related questions!"
-        }];
-      }
+    function ivSelectTopic(btn, topic) {
+      document.querySelectorAll('.iv-topic-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ivState.topic = topic;
+      ivCheckCanStart();
+    }
 
-      // Build a versatile dynamic system prompt
-      let sysPrompt = `You are an expert, versatile AI Interviewer and Career Coach. 
-      Your capabilities cover ALL domains (Finance, Programming, Architecture, Science, Management, etc.).
-      
-      Guidelines:
-      1. IF the user wants to just chat normally, be a helpful, conversational AI assistant.
-      2. IF the user is answering an interview question, evaluate their answer, provide brief constructive feedback, and ask the NEXT question.
-      3. IF the user asks for a mock interview but no context is provided, ASK them what domain/role they are preparing for before starting.
-      4. Keep your responses concise, engaging, and professional.`;
-      
-      if (appState.extractedText || appState.jdText) {
-        sysPrompt += "\n\nContext about the candidate (tailor your questions to their studies, projects, and the job description):\n";
-        if (appState.extractedText) sysPrompt += `Resume/Studies: ${appState.extractedText.substring(0, 1500)}\n`;
-        if (appState.jdText) sysPrompt += `Target Job: ${appState.jdText.substring(0, 1000)}\n`;
+    function ivSelectDifficulty(btn, diff) {
+      document.querySelectorAll('.iv-diff-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ivState.difficulty = diff;
+      ivCheckCanStart();
+    }
+
+    function ivCheckCanStart() {
+      const btn = document.getElementById('ivStartBtn');
+      if (ivState.topic && ivState.difficulty) {
+        btn.disabled = false;
+        btn.textContent = `▶ Start ${ivState.topic} Interview (${ivState.difficulty.charAt(0).toUpperCase() + ivState.difficulty.slice(1)})`;
       } else {
-        sysPrompt += "\n\nNote: The user has NOT uploaded a resume or job description yet.";
+        btn.disabled = true;
+        btn.textContent = '⏳ Select a topic & difficulty to start';
       }
+    }
 
-      appState.chatHistory.push({role: "user", content: text});
+    async function ivStartSession() {
+      const btn = document.getElementById('ivStartBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Generating questions...';
+      const token = localStorage.getItem('token');
 
       try {
-        const res = await fetch('/chat', {
+        const res = await fetch('/interview/start', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            prompt: text,
-            system: sysPrompt,
-            history: appState.chatHistory.slice(-10) // Remember the last 10 messages
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify({
+            topic: ivState.topic,
+            difficulty: ivState.difficulty,
+            resume_text: appState.extractedText || null,
+            jd_text: appState.jdText || null,
           })
         });
-        
-        if (!res.ok) throw new Error("Failed to connect to AI.");
-        
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Failed to start session'); }
         const data = await res.json();
-        let formattedText = escHtml(data.response).replace(/\n/g, '<br>');
-        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        
-        appState.chatHistory.push({role: "assistant", content: data.response});
-        aiMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">${formattedText}</div>`;
+
+        ivState.sessionId = data.session_id;
+        ivState.questionNumber = data.question_number;
+        ivState.totalQuestions = data.total_questions;
+        ivState.currentQuestion = data.question;
+
+        // Switch panels
+        document.getElementById('ivSetupPanel').style.display = 'none';
+        document.getElementById('ivPanel').classList.add('visible');
+        document.getElementById('ivResultsPanel').classList.remove('visible');
+
+        ivRenderQuestion(data);
       } catch (err) {
-        console.error(err);
-        aiMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble" style="color: #dc2626;">Error connecting to AI Interviewer. Please try again.</div>`;
+        alert(`❌ Failed to start interview: ${err.message}`);
+        btn.disabled = false;
+        ivCheckCanStart();
       }
-      body.scrollTop = body.scrollHeight;
+    }
+
+    function ivRenderQuestion(data) {
+      // Progress
+      const pct = Math.round((data.question_number / data.total_questions) * 100);
+      document.getElementById('ivProgressLabel').textContent = `Question ${data.question_number} of ${data.total_questions}`;
+      document.getElementById('ivProgressFill').style.width = pct + '%';
+
+      // Difficulty badge
+      const badge = document.getElementById('ivDiffBadge');
+      badge.className = 'iv-difficulty-badge ' + ivState.difficulty;
+      badge.textContent = ivState.difficulty.charAt(0).toUpperCase() + ivState.difficulty.slice(1);
+
+      // Follow-up badge
+      const fuBadge = document.getElementById('ivFollowupBadge');
+      fuBadge.style.display = data.is_followup ? 'inline-flex' : 'none';
+
+      // Question text
+      document.getElementById('ivQNumber').textContent = `QUESTION ${data.question_number}`;
+      document.getElementById('ivQText').textContent = data.question;
+      document.getElementById('ivQCategory').textContent = data.category ? `📂 ${data.category}` : '';
+
+      // Reset answer area
+      const ta = document.getElementById('ivAnswerTextarea');
+      ta.value = '';
+      ta.disabled = false;
+      ta.focus();
+
+      // Reset eval panel
+      document.getElementById('ivEvalPanel').classList.remove('visible');
+      document.getElementById('ivSubmitBtn').disabled = false;
+      document.getElementById('ivNextBtn').disabled = false;
+      document.getElementById('ivHintText').classList.remove('visible');
+
+      ivState.currentQuestion = data.question;
+      ivState.questionNumber = data.question_number;
+      ivState.totalQuestions = data.total_questions;
+    }
+
+    async function ivSubmitAnswer() {
+      if (ivState.isSubmitting) return;
+      const answer = document.getElementById('ivAnswerTextarea').value.trim();
+      if (!answer) { alert('Please type your answer before submitting.'); return; }
+
+      ivState.isSubmitting = true;
+      const submitBtn = document.getElementById('ivSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Evaluating...';
+      document.getElementById('ivAnswerTextarea').disabled = true;
+      const token = localStorage.getItem('token');
+
+      try {
+        const res = await fetch('/interview/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify({
+            session_id: ivState.sessionId,
+            question_text: ivState.currentQuestion,
+            answer: answer,
+          })
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Evaluation failed'); }
+        const data = await res.json();
+        ivRenderEvaluation(data);
+      } catch (err) {
+        alert(`❌ Evaluation error: ${err.message}`);
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✔ Submit Answer';
+        document.getElementById('ivAnswerTextarea').disabled = false;
+      } finally {
+        ivState.isSubmitting = false;
+        submitBtn.textContent = '✔ Submit Answer';
+      }
+    }
+
+    function ivRenderEvaluation(data) {
+      const score = data.score;
+      const scoreColor = score >= 8 ? '#16a34a' : score >= 6 ? '#d97706' : '#dc2626';
+      const scoreBg = score >= 8 ? 'rgba(34,197,94,0.15)' : score >= 6 ? 'rgba(245,200,66,0.2)' : 'rgba(239,68,68,0.12)';
+
+      const ring = document.getElementById('ivScoreRing');
+      ring.style.background = `conic-gradient(${scoreColor} ${score * 10}%, rgba(0,0,0,0.06) ${score * 10}%)`;
+      ring.style.color = scoreColor;
+      document.getElementById('ivScoreNum').textContent = score.toFixed(1);
+
+      document.getElementById('ivEvalTitle').textContent = `Score: ${score.toFixed(1)} / 10`;
+      document.getElementById('ivEvalFeedback').textContent = data.overall_feedback || '';
+
+      // Strengths
+      const strengths = document.getElementById('ivStrengths');
+      strengths.innerHTML = (data.strengths || []).map(s => `<span class="iv-strength-pill">${escHtml(s)}</span>`).join('');
+
+      // Improvements
+      const improvements = document.getElementById('ivImprovements');
+      improvements.innerHTML = (data.improvements || []).map(i => `<div class="iv-improvement-item">${escHtml(i)}</div>`).join('');
+
+      // Hint
+      document.getElementById('ivHintText').textContent = data.ideal_answer_hint || '';
+
+      // Update Next button label if last question
+      const nextBtn = document.getElementById('ivNextBtn');
+      const isLast = ivState.questionNumber >= ivState.totalQuestions && !data.needs_followup;
+      nextBtn.textContent = isLast ? '🏁 Finish Interview' : (data.needs_followup ? '🔗 Follow-up Question →' : 'Next Question →');
+      nextBtn.onclick = isLast ? ivEndSession : ivNextQuestion;
+
+      document.getElementById('ivEvalPanel').classList.add('visible');
+      document.getElementById('ivEvalPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function ivToggleHint(btn) {
+      const hint = document.getElementById('ivHintText');
+      const visible = hint.classList.toggle('visible');
+      btn.textContent = visible ? '🙈 Hide hint' : '💡 Show ideal answer hint';
+    }
+
+    async function ivNextQuestion() {
+      if (ivState.isLoadingNext) return;
+      ivState.isLoadingNext = true;
+      const nextBtn = document.getElementById('ivNextBtn');
+      nextBtn.disabled = true;
+      nextBtn.textContent = '⏳ Loading next question...';
+      const token = localStorage.getItem('token');
+
+      try {
+        const res = await fetch('/interview/next', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ session_id: ivState.sessionId })
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Failed to get next question'); }
+        const data = await res.json();
+
+        if (data.done) {
+          await ivShowResults();
+        } else {
+          ivRenderQuestion(data);
+          document.getElementById('ivQuestionCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (err) {
+        alert(`❌ Error: ${err.message}`);
+        nextBtn.disabled = false;
+      } finally {
+        ivState.isLoadingNext = false;
+      }
+    }
+
+    async function ivEndSession() {
+      const token = localStorage.getItem('token');
+      try {
+        // Try to fetch results even if session was ended early
+        const res = await fetch('/interview/finish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ session_id: ivState.sessionId })
+        });
+        if (!res.ok) throw new Error('Failed to finish session');
+        const data = await res.json();
+        ivRenderResults(data);
+      } catch (err) {
+        alert(`❌ Error finishing session: ${err.message}`);
+      }
+    }
+
+    async function ivShowResults() {
+      await ivEndSession();
+    }
+
+    function ivRenderResults(data) {
+      document.getElementById('ivPanel').classList.remove('visible');
+      document.getElementById('ivResultsPanel').classList.add('visible');
+      document.getElementById('ivResultsPanel').scrollIntoView({ behavior: 'smooth' });
+
+      const score = data.overall_score || 0;
+      const scoreColor = score >= 7 ? '#16a34a' : score >= 5 ? '#d97706' : '#dc2626';
+      const finalRing = document.getElementById('ivFinalScoreRing');
+      finalRing.style.background = `conic-gradient(${scoreColor} ${score * 10}%, rgba(0,0,0,0.08) ${score * 10}%)`;
+      finalRing.style.boxShadow = `0 0 0 10px rgba(255,255,255,0.6)`;
+      document.getElementById('ivFinalScoreNum').textContent = score.toFixed(1);
+      document.getElementById('ivFinalScoreNum').style.color = scoreColor;
+
+      const grade = score >= 8 ? 'Excellent Performance 🏆' : score >= 6 ? 'Good Performance 👍' : score >= 4 ? 'Needs Improvement 📈' : 'Keep Practising 💪';
+      document.getElementById('ivFinalTitle').textContent = grade;
+      document.getElementById('ivFinalSub').textContent = `You answered ${data.total_questions_answered} question${data.total_questions_answered !== 1 ? 's' : ''} in this ${ivState.topic} (${ivState.difficulty}) session.`;
+
+      const tbody = document.getElementById('ivBreakdownBody');
+      tbody.innerHTML = '';
+      (data.breakdown || []).forEach(row => {
+        const scoreColor2 = row.score >= 8 ? '#16a34a' : row.score >= 6 ? '#d97706' : '#dc2626';
+        const improvement = (row.improvements || [])[0] || '—';
+        tbody.innerHTML += `<tr>
+          <td>${row.question_number}</td>
+          <td>${escHtml(row.question.substring(0, 80))}${row.question.length > 80 ? '…' : ''}</td>
+          <td><span class="iv-breakdown-score" style="color:${scoreColor2}">${(row.score || 0).toFixed(1)}</span></td>
+          <td>${escHtml(improvement)}</td>
+        </tr>`;
+      });
+    }
+
+    function ivReset() {
+      ivState.sessionId = null; ivState.topic = null; ivState.difficulty = null;
+      ivState.questionNumber = 1; ivState.totalQuestions = 5;
+      document.querySelectorAll('.iv-topic-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.iv-diff-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('ivSetupPanel').style.display = '';
+      document.getElementById('ivPanel').classList.remove('visible');
+      document.getElementById('ivResultsPanel').classList.remove('visible');
+      document.getElementById('ivAnswerTextarea').value = '';
+      document.getElementById('ivEvalPanel').classList.remove('visible');
+      ivCheckCanStart();
     }
 
     // ── INIT ──────────────────────────────────────────────────────────────────
