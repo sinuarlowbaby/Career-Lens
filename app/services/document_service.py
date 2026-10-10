@@ -19,7 +19,7 @@ from app.db.models import Resume, JobDescription, FileType
 
 logger = logging.getLogger(__name__)
 
-UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "uploads"))
 
 
 # ── 1. File helpers ────────────────────────────────────────────────────────────

@@ -8,7 +8,10 @@ load_dotenv()
 def get_client() -> AsyncGroq:
     key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not key:
-        key = "od1lkLyO0l5xLZHb9fsmI6VuYF3bydGWwb4TT7Adat9rYqgWsyo7_ksg"[::-1]
+        raise HTTPException(
+            status_code=500,
+            detail="GROQ_API_KEY is missing. Please configure it in your environment or AWS Secrets Manager."
+        )
     return AsyncGroq(api_key=key)
 
 

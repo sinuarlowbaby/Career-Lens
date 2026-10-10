@@ -38,11 +38,9 @@ prompt_template = PromptTemplate(
 async def analyze_ats_ai(resume_text: str, job_desc: str):
     api_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not api_key:
-        api_key = "od1lkLyO0l5xLZHb9fsmI6VuYF3bydGWwb4TT7Adat9rYqgWsyo7_ksg"[::-1]
-    if not api_key:
         raise HTTPException(
             status_code=500, 
-            detail="Groq API Key is missing. Please add GROQ_API_KEY to your .env file."
+            detail="Groq API Key is missing. Please add GROQ_API_KEY to your environment or AWS configuration."
         )
 
     # 1. Initialize the LangChain-compatible Groq model

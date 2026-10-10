@@ -91,7 +91,10 @@ class AnswerEvaluation(BaseModel):
 def _build_llm(temperature: float = 0.0) -> ChatGroq:
     api_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not api_key:
-        api_key = "od1lkLyO0l5xLZHb9fsmI6VuYF3bydGWwb4TT7Adat9rYqgWsyo7_ksg"[::-1]
+        raise HTTPException(
+            status_code=500,
+            detail="Groq API Key is missing. Please configure GROQ_API_KEY in your environment or AWS Secrets Manager."
+        )
     return ChatGroq(model="llama-3.3-70b-versatile", api_key=api_key, temperature=temperature)
 
 

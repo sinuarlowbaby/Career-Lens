@@ -1,10 +1,28 @@
+# Environment & Secrets
 .env
-__pycache__
-.venv
-.env.examplew
-uploads
-vector_store
-.DS_Store
-chroma_data
+.env*.local
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
 .python-version
 
+# Local data & storage
+uploads/
+vector_store/
+chroma_data/
+*.db
+career_lens.db
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+3.10.0

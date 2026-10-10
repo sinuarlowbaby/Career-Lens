@@ -13,17 +13,49 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 CHROMA_HOST     = os.getenv("CHROMA_HOST", "localhost")
 CHROMA_PORT     = int(os.getenv("CHROMA_PORT", "8001"))
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # 1. Initialize the embedding function once
 embedder = OpenAIEmbeddings(model=EMBEDDING_MODEL)
 
-# 2. Connect to the Chroma HTTP server (run: chroma run --path ./chroma_data --port 8001)
-chroma_client = chromadb.HttpClient(host="localhost", port=8001)
+def init_chroma_client():
+    """
+    Connects to Chroma HTTP server if available;
+    falls back to local PersistentClient so the app never crashes at boot.
+    """
+    try:
+        client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
+        client.heartbeat()
+        logger.info(f"[Chroma] Connected to Chroma HTTP server at {CHROMA_HOST}:{CHROMA_PORT}")
+        return client
+    except Exception as e:
+        logger.warning(
+            f"[Chroma] Could not connect to Chroma HTTP server at {CHROMA_HOST}:{CHROMA_PORT} ({e}). "
+            f"Using local PersistentClient (path='./chroma_data')."
+        )
+        return chromadb.PersistentClient(path="./chroma_data")
 
-vector_store = Chroma(
-    client=chroma_client,
-    embedding_function=embedder,
-    collection_name="career_lens",
-)
+class LazyVectorStore:
+    """Proxy object that delays Chroma vector store initialization until first access."""
+    def __init__(self):
+        self._store = None
+
+    def _get_store(self):
+        if self._store is None:
+            client = init_chroma_client()
+            self._store = Chroma(
+                client=client,
+                embedding_function=embedder,
+                collection_name="career_lens",
+            )
+        return self._store
+
+    def __getattr__(self, name):
+        return getattr(self._get_store(), name)
+
+vector_store = LazyVectorStore()
 
 def chunks_docs(resume_content: str, job_description_content: str, user_id: str, resume_id: int, jd_id: int):
     text_splitter = SemanticChunker(
