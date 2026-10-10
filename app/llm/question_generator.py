@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_groq import ChatGroq
+from fastapi import HTTPException
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -56,7 +57,10 @@ class SingleFollowUpQuestion(BaseModel):
 def _build_llm(temperature: float = 0.6) -> ChatGroq:
     api_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
     if not api_key:
-        api_key = "od1lkLyO0l5xLZHb9fsmI6VuYF3bydGWwb4TT7Adat9rYqgWsyo7_ksg"[::-1]
+        raise HTTPException(
+            status_code=500,
+            detail="Groq API Key is missing. Please configure GROQ_API_KEY in your environment or AWS Secrets Manager."
+        )
     return ChatGroq(model="llama-3.3-70b-versatile", api_key=api_key, temperature=temperature)
 
 

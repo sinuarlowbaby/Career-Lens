@@ -32,6 +32,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+logger = logging.getLogger(__name__)
 
 # Silence noisy third-party loggers
 logging.getLogger("groq").setLevel(logging.WARNING)
@@ -48,36 +49,46 @@ load_dotenv(dotenv_path=env_path, override=True)
 SECRET_KEY = os.getenv("SECRET_KEY", "my_super_secret_development_key_123")
 
 if not os.getenv("OPENAI_API_KEY"):
-    print("⚠️ WARNING: OPENAI_API_KEY is missing from .env! Using a dummy key so the server can start.")
+    logger.warning("[CONFIG] OPENAI_API_KEY is missing from environment. Using dummy key for initialization.")
     os.environ["OPENAI_API_KEY"] = "dummy-openai-key-to-bypass-error"
 
 groq_key = os.getenv("GROQ_API_KEY", "").strip(' "\'')
+if groq_key:
+    os.environ["GROQ_API_KEY"] = groq_key
+    logger.info(f"[CONFIG] Loaded Groq key starting with: {groq_key[:6]}...")
+else:
+    logger.warning("[CONFIG] GROQ_API_KEY is not set in environment.")
 
-if not groq_key:
-    # Deeply obfuscated by reversing the string to completely bypass GitHub Secret Scanning
-    groq_key = "od1lkLyO0l5xLZHb9fsmI6VuYF3bydGWwb4TT7Adat9rYqgWsyo7_ksg"[::-1]
-
-os.environ["GROQ_API_KEY"] = groq_key
-print(f"✅ SUCCESS: Loaded Groq key starting with: {groq_key[:8]}...")
-
-# ── Auto-Start ChromaDB ───────────────────────────────────────────────────────
+# ── Auto-Start ChromaDB (Local dev only) ───────────────────────────────────────
 import socket
 import subprocess
 import time
 
-def is_port_in_use(port: int) -> bool:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('127.0.0.1', port)) == 0
+CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost")
+CHROMA_PORT = int(os.getenv("CHROMA_PORT", "8001"))
+CHROMA_AUTO_START = os.getenv("CHROMA_AUTO_START", "true").lower() in ("true", "1")
 
-if not is_port_in_use(8001):
-    print("🚀 Starting ChromaDB Server automatically in the background...")
-    subprocess.Popen(
-        "chroma run --path ./chroma_data --port 8001",
-        shell=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
-    time.sleep(5)  # Wait for ChromaDB to be fully ready before importing routes
+def is_port_in_use(host: str, port: int) -> bool:
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(1.0)
+            return s.connect_ex((host, port)) == 0
+    except Exception:
+        return False
+
+# Only auto-start Chroma if explicitly targeting localhost and auto-start is enabled
+if CHROMA_AUTO_START and CHROMA_HOST in ("localhost", "127.0.0.1") and not is_port_in_use("127.0.0.1", CHROMA_PORT):
+    logger.info(f"[CHROMA] Starting ChromaDB Server locally in the background on port {CHROMA_PORT}...")
+    try:
+        subprocess.Popen(
+            f"chroma run --path ./chroma_data --port {CHROMA_PORT}",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        time.sleep(3)  # Wait for ChromaDB to be ready
+    except Exception as e:
+        logger.warning(f"[CHROMA] Could not auto-start ChromaDB process: {e}")
 
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -88,9 +99,8 @@ from app.routes.api.ai import router as ai_router
 from app.routes.api.chroma_proxy import router as chroma_proxy_router
 
 # ── CORS: list your actual origins (wildcard + credentials is rejected by browsers) ──
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://localhost:3000").split(",")
-
-logger = logging.getLogger(__name__)
+raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://localhost:3000")
+ALLOWED_ORIGINS = [orig.strip() for orig in raw_origins.split(",") if orig.strip()]
 
 
 @asynccontextmanager
@@ -102,14 +112,15 @@ async def lifespan(app: FastAPI):
     from sqlalchemy import text
 
     # Step 1: Create any missing tables (new tables added to models.py appear here)
-    Base.metadata.create_all(bind=engine)
-    logger.info("✅ Database tables verified/created")
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("[DB] Database tables verified/created")
+    except Exception as e:
+        logger.error(f"[DB] Could not connect to database on startup: {e}")
     
-    print("🚀 FastAPI server is ready!")
-    print("APP UI  →  http://localhost:8000")
-    print("📖 Swagger UI  →  http://localhost:8000/docs")
+    logger.info("[READY] FastAPI server is ready. Swagger docs at: /docs")
     yield
-    logger.info("🛑 Shutting down CareerLens...")
+    logger.info("[SHUTDOWN] Shutting down CareerLens...")
 
 app = FastAPI(title="Career Lens", description="Career Lens AI", version="1.0.0", lifespan=lifespan)
 
