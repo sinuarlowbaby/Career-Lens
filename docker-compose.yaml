@@ -25,6 +25,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./career_lens.db}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-qwen/qwen3.8-27b}
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:8000,http://localhost:3000}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8000}

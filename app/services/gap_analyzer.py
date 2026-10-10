@@ -94,8 +94,9 @@ def _build_llm(temperature: float = 0.0) -> ChatGroq:
             detail="Groq API Key is missing. Please add GROQ_API_KEY to your environment or AWS configuration."
         )
 
+    model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
     return ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model=model_name,
         api_key=api_key,
         temperature=temperature,
     )

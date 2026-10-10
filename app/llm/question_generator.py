@@ -61,7 +61,8 @@ def _build_llm(temperature: float = 0.6) -> ChatGroq:
             status_code=500,
             detail="Groq API Key is missing. Please configure GROQ_API_KEY in your environment or AWS Secrets Manager."
         )
-    return ChatGroq(model="llama-3.3-70b-versatile", api_key=api_key, temperature=temperature)
+    model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+    return ChatGroq(model=model_name, api_key=api_key, temperature=temperature)
 
 
 # ── Generate 5 base interview questions ──────────────────────────────────────

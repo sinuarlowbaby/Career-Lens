@@ -44,8 +44,9 @@ async def analyze_ats_ai(resume_text: str, job_desc: str):
         )
 
     # 1. Initialize the LangChain-compatible Groq model
+    model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
     llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model=model_name,
         api_key=api_key,
         temperature=0.7,
         # Force JSON mode at the API level for maximum reliability
