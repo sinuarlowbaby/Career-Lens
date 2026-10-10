@@ -87,11 +87,24 @@ async def chat(payload: ChatRequest):
 
 @router.post("/ats")
 async def ats(payload: AtsRequest = None, user: User = Depends(get_current_user)):
-    if payload and payload.resume_text and payload.jd_text:
-        result = await analyze_ats_ai(payload.resume_text, payload.jd_text)
-        return {"ats_analysis": result}
+    resume_text = (payload.resume_text if (payload and payload.resume_text) else "").strip()
+    jd_text = (payload.jd_text if (payload and payload.jd_text) else "").strip()
 
-    raise HTTPException(status_code=400, detail="Please provide resume_text and jd_text in the payload.")
+    if not resume_text and user.resumes:
+        latest_resume = sorted(user.resumes, key=lambda r: r.created_at, reverse=True)[0]
+        resume_text = (latest_resume.content or "").strip()
+
+    if not jd_text and user.job_descriptions:
+        latest_jd = sorted(user.job_descriptions, key=lambda j: j.created_at, reverse=True)[0]
+        jd_text = (latest_jd.content or "").strip()
+
+    if not resume_text:
+        raise HTTPException(status_code=400, detail="No resume found. Please upload a resume first.")
+    if not jd_text:
+        raise HTTPException(status_code=400, detail="No job description found. Please paste or upload a job description first.")
+
+    result = await analyze_ats_ai(resume_text, jd_text)
+    return {"ats_analysis": result}
 
 
 # ── Gap Analysis ─────────────────────────────────────────────────────────────

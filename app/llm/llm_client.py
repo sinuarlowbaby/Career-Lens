@@ -26,8 +26,9 @@ async def generate_response(prompt: str, system_prompt: str = None) -> str:
 
     try:
         client = get_client()
+        model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
         response = await client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=model_name,
             messages=messages,
             max_tokens=1000,
             temperature=0.7

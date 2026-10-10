@@ -15,8 +15,9 @@ async def generate_ai_response(prompt: str, system: str = "You are an AI career 
         if not api_key:
             return {"response": "Error: Groq API Key is missing. Please add GROQ_API_KEY to your environment or AWS configuration."}
 
+        model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
         llm = ChatGroq(
-            model="llama-3.3-70b-versatile",
+            model=model_name,
             api_key=api_key,
             temperature=0.7,
         )
