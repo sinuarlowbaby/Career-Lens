@@ -3151,16 +3151,27 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
     async function runAtsAnalysis() {
       const token = localStorage.getItem('token');
       const btn = document.querySelector('#ats .analyze-btn');
-      btn.disabled = true;
-      btn.textContent = '⏳ Analyzing ATS Compatibility...';
 
       try {
-        const jdText = document.getElementById('atsJdDisplay').value;
-        
+        let jdText = (document.getElementById('atsJdDisplay')?.value || '').trim();
+        if (!jdText && appState.jdText) {
+          jdText = appState.jdText.trim();
+          const atsField = document.getElementById('atsJdDisplay');
+          if (atsField) atsField.value = jdText;
+        }
+
         if (!appState.extractedText) {
           alert("Please upload your Resume first via the Home page.");
           return;
         }
+
+        if (!jdText) {
+          alert("Please paste a Job Description in the box below (or upload one on the Home page) to evaluate ATS compatibility.");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Analyzing ATS Compatibility...';
 
         const res = await fetch('/ats', {
           method: 'POST',
@@ -3174,7 +3185,10 @@ MCA student specializing in Generative AI. Built production-grade RAG pipelines 
           })
         });
 
-        if (!res.ok) throw new Error("ATS analysis failed.");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "ATS analysis failed.");
+        }
 
         const data = await res.json();
         const analysis = data.ats_analysis;
